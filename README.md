@@ -9,14 +9,14 @@
 
 ## 參觀動線
 
-打卡下班（選今天的狀態）→ 吊燈一盞盞熄滅、拿到手電筒 → 下班票根（可存成 1080×1920 圖）→ 夜班警衛推薦三件 → 展品說明牌 → 前往工具。
-「走進館內」是樓層導覽圖，各樓層下一步開放。
+夜間售票口選展區 → 今晚的票（深墨藍燙金，可存成 1080×1920 圖）→ 前往：吊燈快速熄滅、拿到手電筒 → 樓層。
+樓層還在佈展，目前先停在樓層導覽圖。
 
 ## 怎麼運作
 
 1. 改 `content/museum.json`（之後由後台改），推到 GitHub 的 `main`。
 2. Cloudflare 執行 `npm run build`（`build.mjs`）：檢查資料、拿掉草稿、把資料嵌進首頁，輸出 `dist/`。
-   資料有錯（樓層不存在、物件不在圖庫、推薦的展品不存在）會停止建置，網站維持上一版。
+   資料有錯（樓層不存在、物件不在圖庫、展區選項缺警衛的話）會停止建置，網站維持上一版。
 3. 大約 1 分鐘後網站更新。
 
 ## 第一次設定（Cloudflare Workers）
@@ -50,10 +50,10 @@ python3 -m http.server -d dist 8080   # 打開 http://localhost:8080
     "note": "策展說明（200 字內）", "tags": ["LINE 互動"],
     "links": [{ "label": "開始遊戲", "url": "https://…" }]
   }],
-  "clockout": { "states": [{
-    "id": "holding", "name": "還撐得住", "en": "Still holding on",
-    "lines": ["夜班警衛的話，隨機抽一句印在票根上"],
-    "picks": ["e04", "e07", "e01"]  // 推薦的三件
+  "admission": { "zones": [{
+    "id": "f2", "floor": "f2",       // floor 空白＝全館（要另外寫 name、en）
+    "numeral": "II", "choice": "想算清楚",
+    "lines": [{ "zh": "數字會說話，但怎麼過日子，由你決定。", "en": "Numbers speak. How you live is yours to decide." }]  // 多句就隨機抽一句
   }] }
 }
 ```

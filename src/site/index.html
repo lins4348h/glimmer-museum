@@ -6,12 +6,12 @@
 <title>微光博物館｜引路人文創園區</title>
 <meta name="description" content="白天，你是老師；熄燈後，你是你自己。引路人的夜間博物館：老師台下的人生，薪水、退休、測驗與遊戲。">
 <meta property="og:title" content="微光博物館｜引路人文創園區">
-<meta property="og:description" content="白天，你是老師；熄燈後，你是你自己。打卡下班，拿一支手電筒，逛逛老師台下的人生。">
+<meta property="og:description" content="白天，你是老師；熄燈後，你是你自己。到夜間售票口領一張票，逛逛老師台下的人生。">
 <meta name="theme-color" content="#070d1a">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap">
 <link rel="stylesheet" href="museum.css">
 </head>
 <body class="is-lit">
@@ -34,107 +34,79 @@
 <!-- 熄燈後的黑暗＋手電筒 -->
 <div class="dark" id="dark" aria-hidden="true"><div class="beam"></div></div>
 
-<!-- 一、打卡下班 -->
-<section class="scene clock-scene" id="clock-scene" aria-labelledby="clock-title">
+<!-- 一、夜間售票口 -->
+<section class="scene booth-scene" id="booth-scene" aria-labelledby="booth-title">
   <button class="link-btn skip" id="skip" type="button">略過，直接進館</button>
   <header class="scene-head">
     <p class="kicker">Museum of Glimmers</p>
-    <h1 class="title" id="clock-title">微光博物館</h1>
-    <p class="ask">閉館時間到了。今天，你是怎麼下班的？</p>
+    <h1 class="title" id="booth-title">微光博物館</h1>
   </header>
-  <div class="punch">
-    <div class="timeclock" id="timeclock">
-      <svg viewBox="0 0 200 270" aria-hidden="true">
-        <defs>
-          <linearGradient id="tc-body" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3ead6"/><stop offset=".6" stop-color="#e2d3b2"/><stop offset="1" stop-color="#b9a073"/></linearGradient>
-          <linearGradient id="tc-brass" x1="0" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#f6e2a6"/><stop offset=".45" stop-color="#d4a64a"/><stop offset="1" stop-color="#7f5b1c"/></linearGradient>
-          <radialGradient id="tc-face" cx=".42" cy=".38"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#eadfc6"/></radialGradient>
-        </defs>
-        <rect x="8" y="10" width="184" height="252" rx="18" fill="url(#tc-body)"/>
-        <rect x="8" y="10" width="184" height="252" rx="18" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
-        <rect x="14" y="16" width="172" height="240" rx="14" fill="none" stroke="rgba(90,66,30,.18)" stroke-width="1"/>
-        <circle cx="100" cy="98" r="70" fill="url(#tc-brass)"/>
-        <circle cx="100" cy="98" r="61" fill="url(#tc-face)"/>
-        <g id="tc-ticks"></g>
-        <text x="100" y="75" text-anchor="middle" class="tc-brand">GLIMMERS</text>
-        <g id="tc-hour"><line x1="100" y1="98" x2="100" y2="66" stroke="#231b10" stroke-width="4.4" stroke-linecap="round"/></g>
-        <g id="tc-min"><line x1="100" y1="106" x2="100" y2="50" stroke="#231b10" stroke-width="2.8" stroke-linecap="round"/></g>
-        <g id="tc-sec"><line x1="100" y1="112" x2="100" y2="46" stroke="#b0503c" stroke-width="1.2" stroke-linecap="round"/><circle cx="100" cy="98" r="3.4" fill="#b0503c"/></g>
-        <circle cx="100" cy="98" r="5" fill="url(#tc-brass)"/>
-        <rect x="52" y="180" width="96" height="20" rx="3" fill="url(#tc-brass)"/>
-        <text x="100" y="194.2" text-anchor="middle" class="tc-plate">員工出口</text>
-        <rect x="40" y="218" width="120" height="10" rx="5" fill="#1b1409"/>
-        <rect x="42" y="219" width="116" height="3" rx="1.5" fill="rgba(255,255,255,.08)"/>
-        <circle id="tc-lamp" cx="164" cy="190" r="4.2" fill="#5a2a20"/>
-        <text x="100" y="246" text-anchor="middle" class="tc-hint">STAFF EXIT · INSERT CARD</text>
-      </svg>
-      <span class="tc-slot" id="tc-slot"></span>
-    </div>
-    <div class="card" id="card" role="group" aria-labelledby="card-title">
-      <div class="card-head">
-        <span class="card-title" id="card-title">打卡單<i>Time Card</i></span>
-        <span class="card-date" id="card-date"></span>
+  <div class="booth" id="booth">
+    <p class="booth-sign">夜間售票<i>Night Admission</i></p>
+    <div class="booth-house">
+      <span class="booth-cornice"></span>
+      <div class="booth-frame">
+        <div class="booth-glass">
+          <div class="booth-ask"><p>今晚，<br class="m-br">想去哪裡走走？</p><i>Where to, tonight?</i></div>
+          <span class="booth-grille"></span>
+        </div>
       </div>
-      <div class="card-rows" id="card-rows"></div>
-      <p class="card-foot">選一行，把卡插進打卡鐘</p>
+    </div>
+    <div class="booth-ledge"><span class="booth-slot"></span></div>
+    <div class="booth-counter"></div>
+  </div>
+  <div class="zones" id="zones" role="group" aria-label="選一個展區"></div>
+</section>
+
+<!-- 二、今晚的票 -->
+<section class="scene ticket-scene" id="ticket-scene" hidden aria-labelledby="tk-zone">
+  <div class="ticket-stage">
+    <article class="ticket" id="ticket">
+      <div class="tk tk-main">
+        <span class="tk-frame"><i></i><i></i></span>
+        <div class="tk-in">
+          <svg class="tk-emblem" viewBox="0 0 30 38" aria-hidden="true">
+            <defs><linearGradient id="tk-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#d4a64a"/><stop offset="1" stop-color="#9c742c"/></linearGradient></defs>
+            <circle cx="15" cy="3.2" r="2.4" fill="none" stroke="url(#tk-gold)" stroke-width="1.2"/>
+            <path d="M7 11 L23 11 L19.5 6 L10.5 6 Z" fill="url(#tk-gold)"/>
+            <rect x="8" y="11" width="14" height="19" fill="none" stroke="url(#tk-gold)" stroke-width="1.2"/>
+            <path d="M15 15 C18.5 19.5 18.5 23 15 25.5 C11.5 23 11.5 19.5 15 15 Z" fill="url(#tk-gold)"/>
+            <rect x="6" y="30" width="18" height="3.2" rx="1" fill="url(#tk-gold)"/>
+            <path d="M9 33.2 L10.5 37 L19.5 37 L21 33.2 Z" fill="url(#tk-gold)"/>
+          </svg>
+          <p class="tk-museum foil">Museum of Glimmers</p>
+          <p class="tk-name">微光博物館</p>
+          <p class="tk-numeral foil" id="tk-numeral">II</p>
+          <h2 class="tk-zone" id="tk-zone"></h2>
+          <p class="tk-zone-en" id="tk-zone-en"></p>
+          <div class="tk-rule"></div>
+          <p class="tk-quote" id="tk-quote"></p>
+          <p class="tk-quote-en" id="tk-quote-en"></p>
+          <p class="tk-sign">夜班警衛　Night Guard</p>
+        </div>
+      </div>
+      <div class="tk tk-stub">
+        <div class="tk-in tk-stub-row">
+          <span class="tk-adm">夜間入館券<i>Night Admission</i></span>
+          <span class="tk-date foil" id="tk-date"></span>
+        </div>
+      </div>
+    </article>
+    <div class="tk-actions">
+      <button class="btn" id="tk-go" type="button">前往</button>
+      <div class="tk-minor">
+        <button class="link-btn" id="tk-save" type="button">存下這張票根</button>
+        <button class="link-btn" id="tk-again" type="button">換一個展區</button>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- 二、熄燈 -->
+<!-- 三、熄燈 -->
 <section class="scene night-scene" id="night-scene" hidden aria-live="polite">
   <div class="night-words">
     <p class="nw-1">白天，你是老師；</p>
     <p class="nw-2">熄燈後，你是你自己。</p>
-  </div>
-  <div class="night-bottom">
-    <p class="night-hint">移動手電筒，看看館裡有什麼</p>
-    <button class="btn" id="to-ticket" type="button">領取今晚的票根</button>
-  </div>
-</section>
-
-<!-- 三、下班票根 -->
-<section class="scene ticket-scene" id="ticket-scene" hidden aria-labelledby="tk-title">
-  <div class="ticket-stage" id="ticket-stage">
-    <div class="ticket-col">
-      <article class="ticket" id="ticket">
-        <div class="tk-main">
-          <p class="tk-kicker">Museum of Glimmers</p>
-          <h2 class="tk-title" id="tk-title">微光博物館</h2>
-          <p class="tk-sub">夜間入館券<i>Night Admission</i></p>
-          <div class="tk-rule"></div>
-          <div class="tk-time">
-            <span class="tk-label">下班打卡<i>Clock-out</i></span>
-            <span class="tk-stamp" id="tk-stamp">18:00</span>
-            <span class="tk-date" id="tk-date"></span>
-          </div>
-          <div class="tk-state">
-            <span class="tk-label">今天的狀態<i>Tonight</i></span>
-            <b id="tk-state"></b><i id="tk-state-en"></i>
-          </div>
-          <blockquote class="tk-quote"><p id="tk-quote"></p><cite>— 夜班警衛<i>Night Guard</i></cite></blockquote>
-        </div>
-        <div class="tk-stub">
-          <span class="tk-admit">ADMIT ONE</span>
-          <span class="tk-no" id="tk-no">No. 0000000</span>
-          <span class="tk-bars" id="tk-bars"></span>
-        </div>
-      </article>
-      <div class="tk-actions">
-        <button class="btn" id="picks-btn" type="button" aria-expanded="false" aria-controls="picks">夜班警衛推薦的三件 →</button>
-        <div class="tk-minor">
-          <button class="link-btn" id="tk-save" type="button">存下這張票根</button>
-          <button class="link-btn" id="tk-again" type="button">重新打卡</button>
-          <button class="link-btn" id="tk-enter" type="button">走進館內</button>
-        </div>
-      </div>
-    </div>
-    <section class="picks" id="picks" hidden aria-labelledby="picks-h">
-      <p class="picks-kicker">Night Guard's Picks</p>
-      <h2 id="picks-h">夜班警衛推薦的三件</h2>
-      <p class="picks-sub" id="picks-sub"></p>
-      <div class="picks-row" id="picks-row"></div>
-    </section>
   </div>
 </section>
 
@@ -145,11 +117,11 @@
     <h2 class="dir-title" id="dir-title">樓層導覽</h2>
     <ol class="dir-floors" id="dir-floors"></ol>
     <p class="dir-note">館內佈展中，各樓層陸續開放。</p>
-    <button class="btn btn-ghost" id="dir-back" type="button">← 回到票根</button>
+    <button class="btn btn-ghost" id="dir-back" type="button">← 回到售票口</button>
   </div>
 </section>
 
-<!-- 展品說明牌 -->
+<!-- 展品說明牌（樓層開放後使用） -->
 <div class="placard-veil" id="placard" hidden>
   <article class="placard" role="dialog" aria-modal="true" aria-labelledby="pl-title">
     <button class="pl-close" id="pl-close" type="button" aria-label="關閉">×</button>

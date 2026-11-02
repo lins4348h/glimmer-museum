@@ -31,9 +31,7 @@ const exhibits = data.exhibits
     object: e.object, glow: e.glow || "gold", note: e.note || "", tags: e.tags || [],
     links: e.status === "open" ? (e.links || []) : []
   }));
-const live = new Set(exhibits.map(e => e.id));
-const states = data.clockout.states.map(s => ({ ...s, picks: s.picks.filter(id => live.has(id)) }));
-const payload = { floors: data.floors, exhibits, clockout: { states }, footer: FOOTER };
+const payload = { floors: data.floors, exhibits, admission: data.admission, footer: FOOTER };
 
 await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
@@ -68,10 +66,15 @@ function check(d) {
     if (!OBJECTS[e.object]) errs.push(`${who}的物件「${e.object}」不在圖庫裡`);
     if (e.glow && !GLOWS.includes(e.glow)) errs.push(`${who}的光色「${e.glow}」不對`);
   }
-  for (const s of d.clockout?.states || []) {
-    if (!s.id || !s.name) errs.push(`下班狀態缺 id 或名稱`);
-    if (!s.lines?.length) errs.push(`下班狀態「${s.name}」沒有警衛的話`);
-    for (const p of s.picks || []) if (!ids.has(p)) errs.push(`下班狀態「${s.name}」推薦的展品「${p}」不存在`);
+  // 售票口的展區選項：floor 空白＝全館
+  const zones = d.admission?.zones || [];
+  if (!zones.length) errs.push("售票口沒有任何展區選項");
+  for (const z of zones) {
+    const who = `展區選項「${z.choice || z.id}」`;
+    if (!z.id || !z.choice || !z.numeral) errs.push(`${who}缺 id、選項文字或羅馬數字`);
+    if (z.floor && !fl.has(z.floor)) errs.push(`${who}的樓層「${z.floor}」不存在`);
+    if (!z.floor && !z.name) errs.push(`${who}是全館，要寫 name`);
+    if (!z.lines?.length || z.lines.some(l => !l.zh)) errs.push(`${who}沒有夜班警衛的話`);
   }
   return errs;
 }

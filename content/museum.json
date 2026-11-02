@@ -1,137 +1,383 @@
 {
   "floors": [
-    { "id": "f1", "label": "1F", "name": "夜間互動區", "en": "After Dark", "blurb": "熄燈之後，這幾件展品會自己動起來。" },
-    { "id": "f2", "label": "2F", "name": "薪水與時間", "en": "Salary & Time", "blurb": "每個月的數字，和三十年後的自己。" },
-    { "id": "f3", "label": "3F", "name": "照見自己", "en": "Know Thyself", "blurb": "放下老師的身分，看看鏡子裡的人。" },
-    { "id": "shop", "label": "出口", "name": "博物館商店", "en": "Museum Shop", "blurb": "離開前，帶一點小小的快樂回家。" }
+    {
+      "id": "f1",
+      "label": "1F",
+      "name": "夜間互動區",
+      "en": "After Dark",
+      "blurb": "熄燈之後，這幾件展品會自己動起來。"
+    },
+    {
+      "id": "f2",
+      "label": "2F",
+      "name": "薪水與時間",
+      "en": "Salary & Time",
+      "blurb": "每個月的數字，和三十年後的自己。"
+    },
+    {
+      "id": "f3",
+      "label": "3F",
+      "name": "照見自己",
+      "en": "Know Thyself",
+      "blurb": "放下老師的身分，看看鏡子裡的人。"
+    },
+    {
+      "id": "shop",
+      "label": "出口",
+      "name": "博物館商店",
+      "en": "Museum Shop",
+      "blurb": "離開前，帶一點小小的快樂回家。"
+    }
   ],
   "exhibits": [
     {
-      "id": "e01", "floor": "f1", "status": "open", "onDisplay": true, "order": 1,
-      "title": "《老師，在嗎？》", "en": "Are You There, Teacher?", "kind": "遊戲", "version": "v4.6",
-      "object": "phone", "glow": "gold",
+      "id": "e01",
+      "floor": "f1",
+      "status": "open",
+      "onDisplay": true,
+      "order": 1,
+      "title": "《老師，在嗎？》",
+      "en": "Are You There, Teacher?",
+      "kind": "遊戲",
+      "version": "v4.6",
+      "object": "phone",
+      "glow": "gold",
       "note": "下班了，手機還在響。選一個人，把這件事處理完。顧對方、顧自己、守原則，每一種回法都有代價，沒有標準答案。建議開聲音，會有人打電話來。",
-      "tags": ["LINE 互動", "職場兩難"],
-      "links": [{ "label": "開始遊戲", "url": "https://teacher-work-line.netlify.app/" }]
+      "tags": [
+        "LINE 互動",
+        "職場兩難"
+      ],
+      "links": [
+        {
+          "label": "開始遊戲",
+          "url": "https://teacher-work-line.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e02", "floor": "f1", "status": "open", "onDisplay": true, "order": 2,
-      "title": "《離職，不殉職》", "en": "Quit, Don't Die", "kind": "遊戲", "version": "v1.0",
-      "object": "pixel", "glow": "moon",
+      "id": "e02",
+      "floor": "f1",
+      "status": "open",
+      "onDisplay": true,
+      "order": 2,
+      "title": "《離職，不殉職》",
+      "en": "Quit, Don't Die",
+      "kind": "遊戲",
+      "version": "v1.0",
+      "object": "pixel",
+      "glow": "moon",
       "note": "致敬《今天也要平安下班》，把教師的無限流文字遊戲，做成一座像素風的校園。走一圈，看看你能不能平安下班。",
-      "tags": ["像素 RPG", "職場生存"],
-      "links": [{ "label": "開始遊戲", "url": "https://campus-simulation-game.netlify.app/" }]
+      "tags": [
+        "像素 RPG",
+        "職場生存"
+      ],
+      "links": [
+        {
+          "label": "開始遊戲",
+          "url": "https://campus-simulation-game.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e03", "floor": "f1", "status": "open", "onDisplay": true, "order": 3,
-      "title": "《文字無限流》", "en": "The Endless Shift", "kind": "遊戲", "version": "v1.0",
-      "object": "typewriter", "glow": "mist",
+      "id": "e03",
+      "floor": "f1",
+      "status": "open",
+      "onDisplay": true,
+      "order": 3,
+      "title": "《文字無限流》",
+      "en": "The Endless Shift",
+      "kind": "遊戲",
+      "version": "v1.0",
+      "object": "typewriter",
+      "glow": "mist",
       "note": "一款文字角色扮演遊戲。每一個選擇都會把你帶到下一個場景，用一個晚上，讀懂教師的職場生存法則。",
-      "tags": ["文字冒險"],
-      "links": [{ "label": "開始遊戲", "url": "https://teachergame.netlify.app/" }]
+      "tags": [
+        "文字冒險"
+      ],
+      "links": [
+        {
+          "label": "開始遊戲",
+          "url": "https://teachergame.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e04", "floor": "f2", "status": "open", "onDisplay": true, "order": 1,
-      "title": "教師薪資試算", "en": "Salary Calculator", "kind": "試算器", "version": "v4.0",
-      "object": "scroll", "glow": "gold",
+      "id": "e04",
+      "floor": "f2",
+      "status": "open",
+      "onDisplay": true,
+      "order": 1,
+      "title": "教師薪資試算",
+      "en": "Salary Calculator",
+      "kind": "試算器",
+      "version": "v4.0",
+      "object": "scroll",
+      "glow": "gold",
       "note": "計算基礎已更新到 115 年度，加上身分別、輔導課與調薪預估。動動手指，算算看哪一年年薪會破百萬。",
-      "tags": ["115 年度"],
-      "links": [{ "label": "開始試算", "url": "https://teacher-salary-calculator.netlify.app/" }]
+      "tags": [
+        "115 年度"
+      ],
+      "links": [
+        {
+          "label": "開始試算",
+          "url": "https://teacher-salary-calculator.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e05", "floor": "f2", "status": "open", "onDisplay": true, "order": 2,
-      "title": "教師退休金試算", "en": "Pension Calculator", "kind": "試算器", "version": "v2.0",
-      "object": "clock", "glow": "moon",
+      "id": "e05",
+      "floor": "f2",
+      "status": "open",
+      "onDisplay": true,
+      "order": 2,
+      "title": "教師退休金試算",
+      "en": "Pension Calculator",
+      "kind": "試算器",
+      "version": "v2.0",
+      "object": "clock",
+      "glow": "moon",
       "note": "退休制度在民國 85 年和 112 年各切了一刀。你走哪一套，取決於你什麼時候開始教書。",
-      "tags": ["85 年", "112 年"],
-      "links": [{ "label": "開始試算", "url": "https://pension-calculation.netlify.app/" }]
+      "tags": [
+        "85 年",
+        "112 年"
+      ],
+      "links": [
+        {
+          "label": "開始試算",
+          "url": "https://pension-calculation.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e06", "floor": "f2", "status": "open", "onDisplay": true, "order": 3,
-      "title": "教師理財試算器", "en": "Teacher's Wealth Planner", "kind": "試算器", "version": "v1.0",
-      "object": "piggy", "glow": "rose",
+      "id": "e06",
+      "floor": "f2",
+      "status": "open",
+      "onDisplay": true,
+      "order": 3,
+      "title": "教師理財試算器",
+      "en": "Teacher's Wealth Planner",
+      "kind": "試算器",
+      "version": "v1.0",
+      "object": "piggy",
+      "glow": "rose",
       "note": "老師這份工作，藏著一個常被低估的理財優勢：穩定。看看穩定的現金流，放進時間裡會長成什麼樣子。",
-      "tags": ["長期投資"],
-      "links": [{ "label": "開始試算", "url": "https://toolfinance.netlify.app/" }]
+      "tags": [
+        "長期投資"
+      ],
+      "links": [
+        {
+          "label": "開始試算",
+          "url": "https://toolfinance.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e07", "floor": "f2", "status": "open", "onDisplay": true, "order": 4,
-      "title": "每月收支體檢", "en": "Monthly Cash Check", "kind": "試算器", "version": "v1.0",
-      "object": "hourglass", "glow": "mist",
+      "id": "e07",
+      "floor": "f2",
+      "status": "open",
+      "onDisplay": true,
+      "order": 4,
+      "title": "每月收支體檢",
+      "en": "Monthly Cash Check",
+      "kind": "試算器",
+      "version": "v1.0",
+      "object": "hourglass",
+      "glow": "mist",
       "note": "大多數人都高估了自己每月的開銷。把「每月都花」和「偶爾才花」分開，你會發現平常的基本盤，沒有想像中重。",
-      "tags": ["記帳"],
-      "links": [{ "label": "開始體檢", "url": "https://grand-clafoutis-b1948b.netlify.app/" }]
+      "tags": [
+        "記帳"
+      ],
+      "links": [
+        {
+          "label": "開始體檢",
+          "url": "https://grand-clafoutis-b1948b.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e08", "floor": "f2", "status": "open", "onDisplay": true, "order": 5,
-      "title": "財務資產總覽", "en": "Net Worth Overview", "kind": "試算器", "version": "v1.0",
-      "object": "scale", "glow": "gold",
+      "id": "e08",
+      "floor": "f2",
+      "status": "open",
+      "onDisplay": true,
+      "order": 5,
+      "title": "財務資產總覽",
+      "en": "Net Worth Overview",
+      "kind": "試算器",
+      "version": "v1.0",
+      "object": "scale",
+      "glow": "gold",
       "note": "存款、股票、房子、貸款，分開看很零散。把全部資產減掉負債，算出一個數字：淨值，才是你真正擁有的。",
-      "tags": ["淨值"],
-      "links": [{ "label": "開始盤點", "url": "https://celadon-starship-b44b3c.netlify.app/" }]
+      "tags": [
+        "淨值"
+      ],
+      "links": [
+        {
+          "label": "開始盤點",
+          "url": "https://celadon-starship-b44b3c.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e09", "floor": "f3", "status": "open", "onDisplay": true, "order": 1,
-      "title": "趣味教師人格測驗", "en": "The Teacher Persona Quiz", "kind": "測驗", "version": "v1.0",
-      "object": "mask", "glow": "rose",
+      "id": "e09",
+      "floor": "f3",
+      "status": "open",
+      "onDisplay": true,
+      "order": 1,
+      "title": "趣味教師人格測驗",
+      "en": "The Teacher Persona Quiz",
+      "kind": "測驗",
+      "version": "v1.0",
+      "object": "mask",
+      "glow": "rose",
       "note": "12 道題，測出那個藏在你教室裡、連你自己都未必承認的人格。",
-      "tags": ["12 題"],
-      "links": [{ "label": "開始測驗", "url": "https://teacher-personality-quiz.netlify.app/" }]
+      "tags": [
+        "12 題"
+      ],
+      "links": [
+        {
+          "label": "開始測驗",
+          "url": "https://teacher-personality-quiz.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e10", "floor": "f3", "status": "open", "onDisplay": true, "order": 2,
-      "title": "人格測驗結果剖析", "en": "Persona Report", "kind": "報告", "version": "v1.0",
-      "object": "magnifier", "glow": "moon",
+      "id": "e10",
+      "floor": "f3",
+      "status": "open",
+      "onDisplay": true,
+      "order": 2,
+      "title": "人格測驗結果剖析",
+      "en": "Persona Report",
+      "kind": "報告",
+      "version": "v1.0",
+      "object": "magnifier",
+      "glow": "moon",
       "note": "拆解「任教階段」和「主人格」之間的關聯，看看老師們的帶班風格，怎麼隨著學生的年齡一路改寫。",
-      "tags": ["數據報告"],
-      "links": [{ "label": "閱讀報告", "url": "https://teacher-test-analysis.netlify.app/" }]
+      "tags": [
+        "數據報告"
+      ],
+      "links": [
+        {
+          "label": "閱讀報告",
+          "url": "https://teacher-test-analysis.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e11", "floor": "f3", "status": "open", "onDisplay": true, "order": 3,
-      "title": "教師轉職探索測驗", "en": "Career Compass", "kind": "測驗", "version": "v1.0",
-      "object": "compass", "glow": "gold",
+      "id": "e11",
+      "floor": "f3",
+      "status": "open",
+      "onDisplay": true,
+      "order": 3,
+      "title": "教師轉職探索測驗",
+      "en": "Career Compass",
+      "kind": "測驗",
+      "version": "v1.0",
+      "object": "compass",
+      "glow": "gold",
       "note": "15 道題，從「面對人還是面對事」「動腦還是動手」「要安穩還是要自由」三個面向，照見你此刻的傾向。",
-      "tags": ["15 題", "生涯"],
-      "links": [{ "label": "開始測驗", "url": "https://teacher-career-exploration.netlify.app/" }]
+      "tags": [
+        "15 題",
+        "生涯"
+      ],
+      "links": [
+        {
+          "label": "開始測驗",
+          "url": "https://teacher-career-exploration.netlify.app/"
+        }
+      ]
     },
     {
-      "id": "e12", "floor": "f3", "status": "renovating", "onDisplay": true, "order": 4,
-      "title": "教師工作負荷調查", "en": "Workload Survey", "kind": "測驗", "version": "",
-      "object": "timeclock", "glow": "mist",
+      "id": "e12",
+      "floor": "f3",
+      "status": "renovating",
+      "onDisplay": true,
+      "order": 4,
+      "title": "教師工作負荷調查",
+      "en": "Workload Survey",
+      "kind": "測驗",
+      "version": "",
+      "object": "timeclock",
+      "glow": "mist",
       "note": "幫自己做一次整理，看看你這週到底扛了多少。我們每天都很忙，卻很少有人真的算過，那些忙碌加起來是多少。",
       "tags": [],
       "links": []
     },
     {
-      "id": "e13", "floor": "shop", "status": "open", "onDisplay": true, "order": 1,
-      "title": "辦公室飲料隨機生成器", "en": "The Drink Oracle", "kind": "小工具", "version": "v1.0",
-      "object": "cup", "glow": "rose",
+      "id": "e13",
+      "floor": "shop",
+      "status": "open",
+      "onDisplay": true,
+      "order": 1,
+      "title": "辦公室飲料隨機生成器",
+      "en": "The Drink Oracle",
+      "kind": "小工具",
+      "version": "v1.0",
+      "object": "cup",
+      "glow": "rose",
       "note": "選縣市、按一下，直接決定今天訂哪家、喝什麼。收錄台灣連鎖手搖飲的人氣品項，與各品牌無合作或贊助關係。",
-      "tags": ["選擇困難救星"],
-      "links": [{ "label": "抽一杯", "url": "https://drink-picker.netlify.app/" }]
+      "tags": [
+        "選擇困難救星"
+      ],
+      "links": [
+        {
+          "label": "抽一杯",
+          "url": "https://drink-picker.netlify.app/"
+        }
+      ]
     }
   ],
-  "clockout": {
-    "states": [
+  "admission": {
+    "zones": [
       {
-        "id": "drained", "name": "累到不想說話", "en": "Too tired to talk",
-        "lines": ["今天先不用回任何人。喝點東西，慢慢逛。", "累的時候，不用再當誰的老師。", "把今天放下，這裡沒有人會叫你。"],
-        "picks": ["e13", "e09", "e03"]
+        "id": "f1",
+        "floor": "f1",
+        "numeral": "I",
+        "choice": "想玩一下",
+        "lines": [
+          {
+            "zh": "今晚不用當誰的榜樣，好好玩就好。",
+            "en": "Tonight, you don't have to be anyone's role model. Just play."
+          }
+        ]
       },
       {
-        "id": "holding", "name": "還撐得住", "en": "Still holding on",
-        "lines": ["撐得住很好，但記得，你不用一直撐。", "今天也辛苦了。撐住的你，值得被好好算一算。", "還有力氣的晚上，適合看清楚自己的數字。"],
-        "picks": ["e04", "e07", "e01"]
+        "id": "f2",
+        "floor": "f2",
+        "numeral": "II",
+        "choice": "想算清楚",
+        "lines": [
+          {
+            "zh": "數字會說話，但怎麼過日子，由你決定。",
+            "en": "Numbers speak. How you live is yours to decide."
+          }
+        ]
       },
       {
-        "id": "escape", "name": "想逃離地球", "en": "Ready to leave the planet",
-        "lines": ["想逃很正常。先看看地圖，再決定要不要走。", "逃跑不丟臉，只是要先知道往哪裡跑。", "今晚就先逃到這裡吧，天亮再說。"],
-        "picks": ["e11", "e02", "e05"]
+        "id": "f3",
+        "floor": "f3",
+        "numeral": "III",
+        "choice": "想認識自己",
+        "lines": [
+          {
+            "zh": "放下講台上的你，看看鏡子裡的人。",
+            "en": "Step off the podium. Meet the person in the mirror."
+          }
+        ]
       },
       {
-        "id": "good", "name": "其實今天不錯", "en": "Actually, a good day",
-        "lines": ["把今天的好心情，存一點給未來的自己。", "好日子要記下來，它們比你以為的多。", "今天不錯，就再多看自己一眼。"],
-        "picks": ["e08", "e06", "e10"]
+        "id": "all",
+        "floor": "",
+        "numeral": "✦",
+        "choice": "隨便逛逛",
+        "name": "全館",
+        "en": "All Floors",
+        "lines": [
+          {
+            "zh": "沒有目的地的晚上，最適合迷路。",
+            "en": "A night with no destination is perfect for getting lost."
+          }
+        ]
       }
     ]
   }
