@@ -1,0 +1,8 @@
+// Cloudflare Workers 設定：網站是純靜態檔，直接把 dist/ 當成網站內容發布
+{
+  "name": "glimmer-museum",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
