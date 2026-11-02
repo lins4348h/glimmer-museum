@@ -59,9 +59,10 @@ function zoneInfo(z) {
 function buildZones() {
   $("zones").innerHTML = ZONES.map(z => {
     const f = zoneInfo(z);
+    // 像售票窗上的價目表：羅馬數字、選項、點線、樓層
     return `<button class="zone" type="button" data-id="${esc(z.id)}">
-      <span class="zone-no">${esc(z.numeral)}</span><b>${esc(z.choice)}</b>
-      <small>${esc(f.label ? `${f.label} ${f.name}` : f.name)}</small><i>${esc(f.en)}</i></button>`;
+      <span class="zone-no">${esc(z.numeral)}</span><span class="zone-name">${esc(z.choice)}</span><span class="zone-dots" aria-hidden="true"></span>
+      <span class="zone-floor">${esc(f.label || f.name)}${f.label ? `<em> ${esc(f.name)}</em>` : ""}</span></button>`;
   }).join("");
   $("zones").querySelectorAll(".zone").forEach(b => b.addEventListener("click", () => issue(b)));
 }
