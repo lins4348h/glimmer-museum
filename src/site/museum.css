@@ -180,70 +180,98 @@ body.is-ticket .hall-cases { opacity: .18; filter: blur(2px); transition: opacit
 .skip { position: absolute; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); z-index: 3; }
 
 /* ---------- 一、夜間售票口 ---------- */
-/* 館裡只剩一扇亮著的售票窗：深墨藍漆木亭、凹槽柱、黃銅簷口。
- * 問題和四個展區都寫在暖光的毛玻璃上，像老售票窗的價目表：小字、點線、樓層。 */
-.booth-scene { display: grid; grid-template-rows: auto minmax(0, 1fr); justify-items: center;
-  padding: calc(clamp(14px, 4vh, 44px) + env(safe-area-inset-top, 0px)) 16px clamp(10px, 3vh, 28px);
+/* 館裡只剩一扇亮著的售票窗：深墨藍漆木亭、凹槽柱、黃銅簷口、暖光拱窗。
+ * 四個展區寫在售票亭上方牆上的樓層牌（像老戲院的場次表），點一行，票從窗口下方的出票口遞出來。 */
+.booth-scene { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(8px, 2.2vh, 22px);
+  padding: calc(clamp(12px, 3.4vh, 40px) + env(safe-area-inset-top, 0px)) 16px clamp(10px, 2.6vh, 26px);
   transition: opacity .6s ease, transform .6s ease; }
 .booth-scene.leaving { opacity: 0; transform: translateY(-8px); pointer-events: none; }
 body.is-lit .hall-cases { opacity: 0; }
-.booth-scene::before { content: ""; position: absolute; left: 50%; bottom: 10%; width: min(980px, 140vw); height: 40%; transform: translateX(-50%); pointer-events: none; z-index: -1;
-  background: radial-gradient(50% 50% at 50% 40%, rgba(255, 196, 110, .16), transparent 72%); }
-/* 四周壓暗，視線只留給售票窗 */
+.booth-scene::before { content: ""; position: absolute; left: 50%; bottom: 8%; width: min(980px, 140vw); height: 46%; transform: translateX(-50%); pointer-events: none; z-index: -1;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 196, 110, .14), transparent 72%); }
+/* 四周壓暗，視線只留給樓層牌和售票窗 */
 .booth-scene::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -2;
-  background: radial-gradient(60% 70% at 50% 50%, rgba(3, 6, 12, 0) 30%, rgba(3, 6, 12, .55) 100%); }
+  background: radial-gradient(60% 70% at 50% 54%, rgba(3, 6, 12, 0) 30%, rgba(3, 6, 12, .55) 100%); }
 .scene-head { text-align: center; }
-/* 售票亭的寬度同時看螢幕寬和高，矮螢幕也放得下 */
-.booth { align-self: center; position: relative; width: min(430px, 80vw, calc((100svh - 230px) * .74)); margin-top: clamp(6px, 2vh, 20px); }
-.booth-house { position: relative; padding: 18px 38px 0; border-radius: 6px 6px 0 0;
+
+/* 牆上的樓層牌：深色漆板、雙層燙金框、四角銅釘，用兩根黃銅吊桿掛著 */
+.wall-sign { position: relative; width: min(440px, 90vw); margin-top: clamp(14px, 3vh, 30px); }
+.ws-rod { position: absolute; top: clamp(-30px, -3vh, -16px); bottom: 100%; width: 2px; background: linear-gradient(180deg, rgba(232, 200, 137, .2), #c9a055); }
+.ws-rod.l { left: 16%; } .ws-rod.r { right: 16%; }
+.ws-board { position: relative; padding: clamp(10px, 1.8vh, 16px) clamp(12px, 3vw, 22px) clamp(6px, 1.2vh, 10px); border-radius: 3px;
+  background:
+    radial-gradient(circle at 9px 9px, #e8c889 1.6px, transparent 2.2px), radial-gradient(circle at calc(100% - 9px) 9px, #e8c889 1.6px, transparent 2.2px),
+    radial-gradient(circle at 9px calc(100% - 9px), #e8c889 1.6px, transparent 2.2px), radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), #e8c889 1.6px, transparent 2.2px),
+    linear-gradient(180deg, #17243f, #0e182e);
+  box-shadow: 0 0 0 1px rgba(232, 200, 137, .6), 0 0 0 5px #0a1222, 0 0 0 6px rgba(232, 200, 137, .32),
+    0 26px 50px -18px rgba(0, 0, 0, .9), 0 0 70px rgba(255, 200, 120, .07); }
+.ws-head { margin: 0 0 clamp(4px, 1vh, 8px); text-align: center; font-family: var(--f-serif); font-weight: 700; color: #f3e7c9;
+  font-size: clamp(.92rem, 2.2vh, 1.06rem); letter-spacing: .2em; text-indent: .2em; }
+.ws-head i { display: block; font-family: var(--f-latin); font-style: italic; font-weight: 500; font-size: .86em; letter-spacing: .08em; text-indent: .08em; color: var(--gold-soft); opacity: .75; }
+.zones { display: grid; }
+.zone { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; min-height: clamp(34px, 5.2vh, 44px); padding: 0 10px;
+  border: 0; border-top: 1px solid rgba(212, 166, 74, .16); background: transparent; color: var(--text); cursor: pointer; text-align: left;
+  transition: background .25s ease; }
+.zone-no { flex: 0 0 30px; font-family: var(--f-latin); font-weight: 600; font-size: 1.22rem; line-height: 1; text-align: center; color: var(--gold); transition: color .25s ease, text-shadow .25s ease; }
+.zone-name { font-family: var(--f-serif); font-weight: 700; font-size: .96rem; letter-spacing: .16em; white-space: nowrap; }
+.zone-dots { flex: 1; min-width: 12px; border-bottom: 1px dotted rgba(232, 200, 137, .32); }
+.zone-floor { font-size: .78rem; letter-spacing: .1em; color: var(--muted); white-space: nowrap; }
+.zone-floor em { font-style: normal; }
+.zone::after { content: ""; position: absolute; left: 0; top: 18%; bottom: 18%; width: 2px; background: var(--gold); opacity: 0; transition: opacity .25s ease; }
+@media (hover: hover) { .zone:hover { background: linear-gradient(90deg, rgba(212, 166, 74, .2), rgba(212, 166, 74, .03)); }
+  .zone:hover .zone-no { color: #f6e3a8; text-shadow: 0 0 12px rgba(232, 200, 137, .7); } .zone:hover::after { opacity: 1; } }
+.zone.on { background: linear-gradient(90deg, rgba(212, 166, 74, .26), rgba(212, 166, 74, .04)); }
+.zone.on .zone-no { color: #f6e3a8; text-shadow: 0 0 12px rgba(232, 200, 137, .8); } .zone.on::after { opacity: 1; }
+/* 一進來：四行由上到下依序亮一次，像在招手 */
+.zones.wave .zone { animation: row-wave 1.2s ease var(--d) both; }
+.zones.wave .zone-no { animation: no-wave 1.2s ease var(--d) both; }
+@keyframes row-wave { 0%, 100% { background-color: transparent; } 40% { background-color: rgba(212, 166, 74, .2); } }
+@keyframes no-wave { 0%, 100% { text-shadow: none; } 40% { text-shadow: 0 0 14px rgba(246, 227, 168, .9); color: #f6e3a8; } }
+.ws-hint { margin: clamp(6px, 1.2vh, 10px) 0 0; text-align: center; font-size: .78rem; letter-spacing: .16em; color: var(--muted); }
+
+/* 售票亭：拱形寬窗、毛玻璃暖光，玻璃上只寫「夜間售票」 */
+.booth { position: relative; width: min(340px, 74vw, calc((100svh - 460px) * 1.2)); min-width: 150px; margin-top: 10px; }
+.booth-house { position: relative; padding: 16px 32px 0; border-radius: 6px 6px 0 0;
   background: linear-gradient(180deg, #1c2a4a, #121d36 70%, #0d162b);
   box-shadow: inset 0 1px 0 rgba(212, 166, 74, .45), inset 0 0 0 1px rgba(212, 166, 74, .12), 0 40px 80px -30px rgba(0, 0, 0, .9); }
-.booth-house::before, .booth-house::after { content: ""; position: absolute; top: 18px; bottom: 0; width: 14px;
+.booth-house::before, .booth-house::after { content: ""; position: absolute; top: 16px; bottom: 0; width: 11px;
   background: repeating-linear-gradient(90deg, #0c1529 0 3px, #22335a 3px 6px); box-shadow: inset 0 0 0 1px rgba(212, 166, 74, .18); }
-.booth-house::before { left: 12px; } .booth-house::after { right: 12px; }
+.booth-house::before { left: 11px; } .booth-house::after { right: 11px; }
 .booth-cornice { position: absolute; left: -10px; right: -10px; top: -12px; height: 13px; border-radius: 2px;
   background: linear-gradient(180deg, #f0d08a, #b8893a 60%, #8a6424); box-shadow: 0 4px 10px rgba(0, 0, 0, .5); }
-.booth-frame { position: relative; padding: 7px; border-radius: 999px 999px 4px 4px;
+.booth-frame { position: relative; padding: 6px; border-radius: 50% 50% 4px 4px / 42% 42% 4px 4px;
   background: linear-gradient(135deg, #3a2a12, #8f6a28 18%, #e3bd6a 32%, #9b7330 48%, #5c4118 70%, #b38a3b 88%, #4a3412);
   box-shadow: 0 0 120px rgba(255, 190, 100, .14); }
-.booth-glass { position: relative; container-type: inline-size; aspect-ratio: 1 / 1.22; border-radius: 999px 999px 2px 2px; overflow: hidden;
-  background: radial-gradient(85% 70% at 50% 52%, #fde9bb 0%, #f2c983 45%, #cf9450 80%, #8f5d28 100%);
+.booth-glass { position: relative; container-type: inline-size; aspect-ratio: 1.25 / 1; border-radius: 50% 50% 2px 2px / 42% 42% 2px 2px; overflow: hidden;
+  background: radial-gradient(80% 70% at 50% 60%, #fde9bb 0%, #f2c983 42%, #cf9450 78%, #8f5d28 100%);
   box-shadow: inset 0 0 0 1px rgba(255, 240, 210, .35), inset 0 0 50px rgba(70, 40, 10, .45);
   transition: filter .3s ease; }
 .booth-glass::before { content: ""; position: absolute; inset: 0; opacity: .3; mix-blend-mode: soft-light; pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E"); }
-.booth-glass::after { content: ""; position: absolute; left: 7%; top: 5%; width: 26%; height: 60%; border-radius: 50%; pointer-events: none;
+.booth-glass::after { content: ""; position: absolute; left: 7%; top: 8%; width: 24%; height: 60%; border-radius: 50%; pointer-events: none;
   background: linear-gradient(160deg, rgba(255, 255, 255, .24), transparent 60%); filter: blur(6px); }
-.booth.issuing .booth-glass { filter: brightness(1.15); }
-/* 玻璃上的字：深褐墨色，大小跟著玻璃寬度走（cqi） */
-.booth-board { position: absolute; inset: 14% 8% 5%; z-index: 2; display: flex; flex-direction: column; align-items: center; color: #3a250c; text-align: center; }
-.bb-sign { margin: 0; font-family: var(--f-serif); font-weight: 700; font-size: 4cqi; letter-spacing: .5em; text-indent: .5em; color: #6b4a20; }
-.bb-sign i { display: block; margin-top: .1em; font-family: var(--f-latin); font-style: italic; font-weight: 500; font-size: 1.05em; letter-spacing: .14em; text-indent: .14em; }
-.bb-ask { margin: 7cqi 0 0; font-family: var(--f-serif); font-weight: 700; font-size: 6cqi; letter-spacing: .14em; text-indent: .14em; white-space: nowrap;
+.booth.issuing .booth-glass { filter: brightness(1.2); }
+.booth-board { position: absolute; inset: 22% 8% 10%; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.bb-sign { margin: 0; font-family: var(--f-serif); font-weight: 700; font-size: 10cqi; letter-spacing: .42em; text-indent: .42em; color: #3a250c;
   text-shadow: 0 1px 0 rgba(255, 236, 200, .5); }
-.bb-ask-en { margin: 1.5cqi 0 0; font-family: var(--f-latin); font-style: italic; font-size: 4.6cqi; letter-spacing: .06em; color: #6b4a20; }
-.bb-rule { position: relative; display: block; width: 26%; height: 1px; margin: 5.5cqi 0 3cqi; background: linear-gradient(90deg, transparent, rgba(58, 37, 12, .55), transparent); }
-.bb-rule::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1.4cqi; height: 1.4cqi; transform: translate(-50%, -50%) rotate(45deg); background: #7a5520; }
-.zones { display: grid; width: 100%; }
-.zone { display: flex; align-items: baseline; gap: 2.4cqi; width: 100%; min-height: clamp(32px, 12.5cqi, 44px); padding: 0 2cqi; border: 0; border-radius: 2px;
-  background: transparent; color: #3a250c; cursor: pointer; text-align: left; transition: background .25s ease, color .25s ease; }
-.zone-no { flex: 0 0 9cqi; font-family: var(--f-latin); font-weight: 600; font-size: 5.6cqi; color: #8a5f22; text-align: center; line-height: 1; }
-.zone-name { font-family: var(--f-serif); font-weight: 700; font-size: 4.9cqi; letter-spacing: .14em; white-space: nowrap; }
-.zone-dots { flex: 1; min-width: 4cqi; transform: translateY(-.25em); border-bottom: 1.5px dotted rgba(58, 37, 12, .38); }
-.zone-floor { font-family: var(--f-serif); font-weight: 500; font-size: 4cqi; letter-spacing: .1em; color: #5a3d16; white-space: nowrap; }
-.zone-floor em { font-style: normal; }
-@container (max-width: 300px) { .zone-floor em { display: none; } }
-.zone { align-items: center; }
-@media (hover: hover) { .zone:hover { background: rgba(255, 246, 222, .42); } }
-.zone:focus-visible { outline: 2px solid #5a3d16; outline-offset: -2px; }
-.zone.on { background: rgba(255, 248, 228, .6); box-shadow: inset 0 0 0 1px rgba(122, 85, 32, .45); }
-.booth-ledge { position: relative; height: 15px; margin: 0 -52px; border-radius: 3px;
+.bb-en { margin: 2cqi 0 0; font-family: var(--f-latin); font-style: italic; font-size: 6cqi; letter-spacing: .14em; text-indent: .14em; color: #6b4a20; }
+.booth-ledge { position: relative; height: 14px; margin: 0 -46px; border-radius: 3px;
   background: linear-gradient(180deg, #e6dcc6, #b8aa8c 60%, #7d7158); box-shadow: 0 12px 24px rgba(0, 0, 0, .6), 0 -10px 30px rgba(255, 200, 120, .25); }
-.booth-slot { position: absolute; left: 50%; top: -5px; width: 38%; height: 5px; transform: translateX(-50%); border-radius: 3px 3px 0 0;
+.booth-slot { position: absolute; left: 50%; top: -5px; width: 42%; height: 5px; transform: translateX(-50%); border-radius: 3px 3px 0 0;
   background: #1b1209; box-shadow: 0 -2px 10px rgba(255, 200, 120, .5); transition: box-shadow .3s ease; }
-.booth.issuing .booth-slot { box-shadow: 0 -4px 22px rgba(255, 214, 140, .95); }
-.booth-counter { height: clamp(18px, 5vh, 54px); margin: 0 -40px; background: linear-gradient(180deg, #1a2643, #0e172c);
+.booth.issuing .booth-slot { box-shadow: 0 -4px 22px rgba(255, 214, 140, .95), 0 0 30px rgba(255, 214, 140, .6); }
+.booth-counter { height: clamp(14px, 3.6vh, 40px); margin: 0 -36px; background: linear-gradient(180deg, #1a2643, #0e172c);
   box-shadow: inset 0 1px 0 rgba(212, 166, 74, .4), 0 20px 40px rgba(0, 0, 0, .7); }
+
+/* ---------- 三、熄燈（進館前，節奏要快） ---------- */
+.night-scene { display: grid; place-items: center; text-align: center; padding: 16px 16px 12vh; pointer-events: none; }
+.night-words p { margin: 0; font-family: var(--f-serif); font-weight: 700; letter-spacing: .26em;
+  font-size: clamp(1.4rem, 3.6vw, 2.4rem); color: #f3e7c9; opacity: 0;
+  text-shadow: 0 0 24px rgba(232, 200, 137, .35); }
+.night-words .nw-2 { margin-top: .5em; color: var(--gold-soft); }
+.night-scene.play .nw-1 { animation: rise .9s ease .15s both; }
+.night-scene.play .nw-2 { animation: rise .9s ease .85s both; }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 
 /* ---------- 二、今晚的票：深墨藍厚卡＋燙金 ---------- */
 .ticket-scene { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
@@ -254,7 +282,7 @@ body.is-lit .hall-cases { opacity: 0; }
   background: radial-gradient(38% 46% at 50% 44%, rgba(255, 214, 140, .16), rgba(255, 214, 140, .04) 55%, transparent 75%), rgba(3, 6, 12, .78); }
 .foil { background: linear-gradient(100deg, #9c742c 0%, #f3dc9c 20%, #c9993f 38%, #f8e7b2 55%, #a87c30 74%, #e9c97f 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent; }
-.ticket { position: relative; width: min(340px, 84vw, calc((100svh - 190px) * .56)); container-type: inline-size; color: #efe6d2; transform: rotate(-1.2deg);
+.ticket { position: relative; width: min(340px, 84vw, calc((100svh - 190px) * .56)); container-type: inline-size; color: #efe6d2; transform: rotate(-1.2deg); transform-origin: 50% 0;
   filter: drop-shadow(0 34px 44px rgba(0, 0, 0, .75)) drop-shadow(0 0 70px rgba(255, 210, 140, .12));
   animation: ticket-in .9s cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes ticket-in { from { opacity: 0; transform: translateY(-36px) rotate(0deg) scale(.96); filter: blur(6px); } to { opacity: 1; transform: rotate(-1.2deg); } }
@@ -293,6 +321,10 @@ body.is-lit .hall-cases { opacity: 0; }
 .tk-adm i { font-family: var(--f-latin); font-style: italic; letter-spacing: .08em; font-size: .84rem; opacity: .7; }
 .tk-date { font-family: var(--f-latin); font-weight: 600; font-size: 1.25em; letter-spacing: .12em; font-variant-numeric: lining-nums; }
 .tk-actions { display: grid; justify-items: center; gap: 4px; animation: rise .8s ease .5s both; }
+/* 從出票口遞出來時：先讓票從窗口出來，館內再暗下，按鈕最後出現 */
+.ticket-scene.from-slot { animation: none; }
+.ticket-scene.from-slot .ticket-stage::before { animation: fade-in .8s ease .85s both; }
+.ticket-scene.from-slot .tk-actions { animation-delay: 1.6s; }
 .tk-minor { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 14px; }
 
 /* ---------- 樓層導覽（佈展中） ---------- */
@@ -374,14 +406,14 @@ body.is-lit .hall-cases { opacity: 0; }
   .arch { flex-basis: 27%; }
   .lamp-glow { width: 300px; height: 300px; }
   .placard { grid-template-columns: 1fr; }
-  .booth-house { padding: 14px 26px 0; }
-  .booth-house::before, .booth-house::after { width: 8px; top: 14px; }
-  .booth-house::before { left: 9px; } .booth-house::after { right: 9px; }
-  .booth-ledge { margin: 0 -34px; height: 12px; }
-  .booth-counter { margin: 0 -24px; }
+  .booth-house { padding: 12px 24px 0; }
+  .booth-house::before, .booth-house::after { width: 7px; top: 12px; }
+  .booth-house::before { left: 8px; } .booth-house::after { right: 8px; }
+  .booth-ledge { margin: 0 -30px; height: 11px; }
+  .booth-counter { margin: 0 -20px; }
   .booth-scene { padding-bottom: 46px; }
-  .booth { width: min(340px, 86vw, calc((100svh - 200px) * .66)); }
-  .booth-glass { aspect-ratio: 1 / 1.32; }
+  .zone { gap: 9px; padding: 0 6px; }
+  .zone-floor em { display: none; }
   .site-foot .foot-name, .site-foot .foot-name + .dot { display: none; }
   .skip { top: auto; bottom: 0; right: 50%; transform: translateX(50%); white-space: nowrap; }
   .arch-moon { --moon-y: 52%; }

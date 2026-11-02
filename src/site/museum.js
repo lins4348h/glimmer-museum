@@ -64,7 +64,14 @@ function buildZones() {
       <span class="zone-no">${esc(z.numeral)}</span><span class="zone-name">${esc(z.choice)}</span><span class="zone-dots" aria-hidden="true"></span>
       <span class="zone-floor">${esc(f.label || f.name)}${f.label ? `<em> ${esc(f.name)}</em>` : ""}</span></button>`;
   }).join("");
-  $("zones").querySelectorAll(".zone").forEach(b => b.addEventListener("click", () => issue(b)));
+  $("zones").querySelectorAll(".zone").forEach((b, i) => { b.style.setProperty("--d", `${.5 + i * .22}s`); b.addEventListener("click", () => issue(b)); });
+  waveZones();
+}
+// 一進來，樓層牌四行由上到下亮一次，告訴訪客「這裡可以點」
+function waveZones() {
+  if (REDUCED) return;
+  const z = $("zones"); z.classList.remove("wave"); void z.offsetWidth; z.classList.add("wave");
+  clearTimeout(waveZones.t); waveZones.t = setTimeout(() => z.classList.remove("wave"), 2600);
 }
 
 let busy = false;
@@ -74,13 +81,15 @@ async function issue(btn) {
   line = zone.lines[Math.floor(Math.random() * zone.lines.length)];
   issuedAt = new Date();
   $("zones").querySelectorAll(".zone").forEach(b => b.classList.toggle("on", b === btn));
-  // 售票窗亮一下，票從出票口出來
+  // 售票窗亮一下，票從出票口遞出來
   $("booth").classList.add("issuing");
-  await wait(REDUCED ? 0 : 420);
-  $("booth-scene").classList.add("leaving");
   await wait(REDUCED ? 0 : 380);
+  showTicket(true);
+  // 票滑出窗口後，售票口才慢慢退到暗處
+  await wait(REDUCED ? 0 : 900);
+  $("booth-scene").classList.add("leaving");
+  await wait(REDUCED ? 0 : 700);
   $("booth-scene").hidden = true;
-  showTicket();
   busy = false;
 }
 
@@ -103,10 +112,29 @@ function fillTicket() {
   $("tk-date").textContent = dateStr(issuedAt);
   $("tk-go").textContent = f.label ? `前往 ${f.label} ${f.name} →` : "走進館內 →";
 }
-function showTicket() {
+function showTicket(fromSlot = false) {
   fillTicket();
   const t = $("ticket-scene"); t.hidden = false; t.scrollTop = 0;
-  const tk = $("ticket"); tk.style.animation = "none"; void tk.offsetWidth; tk.style.animation = "";
+  t.classList.toggle("from-slot", fromSlot && !REDUCED);
+  const tk = $("ticket");
+  tk.getAnimations().forEach(a => a.cancel());
+  if (fromSlot && !REDUCED) {
+    // 票先縮成出票口的寬度、從口子探出來，再往前滑、放大到畫面中央
+    tk.style.animation = "none";
+    const r = tk.getBoundingClientRect(), sl = $("booth-slot").getBoundingClientRect();
+    // 出票時的大小：不超過出票口寬度，也不能滑出畫面底部
+    const room = innerHeight - sl.bottom - 52;
+    const k = Math.max(.08, Math.min(sl.width * .8 / r.width, room / r.height));
+    const dx = (sl.left + sl.width / 2) - (r.left + r.width / 2), dy = sl.top - r.top;
+    // clip-path 把出票口上方的部分藏起來，看起來就是從口子裡探出來；每一段各自的節奏
+    tk.animate([
+      { transform: `translate(${dx}px, ${dy - r.height * k}px) scale(${k})`, clipPath: "inset(100% 0 0 0)", offset: 0, easing: "linear" },
+      { transform: `translate(${dx}px, ${dy - r.height * k}px) scale(${k})`, clipPath: "inset(100% 0 0 0)", offset: .05, easing: "cubic-bezier(.3, 0, .3, 1)" },
+      { transform: `translate(${dx}px, ${dy + 6}px) scale(${k})`, clipPath: "inset(0% 0 0 0)", offset: .45, easing: "linear" },
+      { transform: `translate(${dx}px, ${dy + 6}px) scale(${k})`, clipPath: "inset(0% 0 0 0)", offset: .52, easing: "cubic-bezier(.5, 0, .2, 1)" },
+      { transform: "translate(0, 0) scale(1) rotate(-1.2deg)", clipPath: "inset(0% 0 0 0)", offset: 1 }
+    ], { duration: 1700, fill: "backwards" });
+  } else { tk.style.animation = "none"; void tk.offsetWidth; tk.style.animation = ""; }
   $("tk-go").focus({ preventScroll: true });
 }
 
@@ -313,6 +341,7 @@ function resetToBooth() {
   $("zones").querySelectorAll(".zone").forEach(b => b.classList.remove("on"));
   const bs = $("booth-scene"); bs.hidden = false; bs.classList.remove("leaving");
   zone = null; busy = false;
+  waveZones();
 }
 
 function toast(msg) {

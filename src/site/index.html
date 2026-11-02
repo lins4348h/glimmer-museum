@@ -41,22 +41,28 @@
     <p class="kicker">Museum of Glimmers</p>
     <h1 class="title" id="booth-title">微光博物館</h1>
   </header>
+  <!-- 掛在牆上的樓層牌：點一行，向售票窗買那一層的票 -->
+  <div class="wall-sign">
+    <span class="ws-rod l" aria-hidden="true"></span><span class="ws-rod r" aria-hidden="true"></span>
+    <div class="ws-board">
+      <p class="ws-head">今晚，想去哪裡走走？<i>Where to, tonight?</i></p>
+      <div class="zones" id="zones" role="group" aria-label="選一個展區"></div>
+    </div>
+    <p class="ws-hint">點一個展區，向售票窗買票</p>
+  </div>
   <div class="booth" id="booth">
     <div class="booth-house">
       <span class="booth-cornice"></span>
       <div class="booth-frame">
         <div class="booth-glass">
           <div class="booth-board">
-            <p class="bb-sign">夜間售票<i>Night Admission</i></p>
-            <p class="bb-ask">今晚，想去哪裡走走？</p>
-            <p class="bb-ask-en">Where to, tonight?</p>
-            <span class="bb-rule"></span>
-            <div class="zones" id="zones" role="group" aria-label="選一個展區"></div>
+            <p class="bb-sign">夜間售票</p>
+            <p class="bb-en">Night Admission</p>
           </div>
         </div>
       </div>
     </div>
-    <div class="booth-ledge"><span class="booth-slot"></span></div>
+    <div class="booth-ledge"><span class="booth-slot" id="booth-slot"></span></div>
     <div class="booth-counter"></div>
   </div>
 </section>
