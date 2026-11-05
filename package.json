@@ -2,7 +2,7 @@
   "name": "glimmer-museum",
   "private": true,
   "type": "module",
-  "description": "微光博物館：引路人文創園區，老師台下的人生——理財、測驗、遊戲",
+  "description": "微光博物館：引路人教育園區，老師台下的人生——理財、測驗、遊戲",
   "scripts": {
     "build": "node build.mjs",
     "deploy": "npx wrangler deploy"

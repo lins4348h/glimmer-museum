@@ -20,7 +20,10 @@ export const PAL = {
   a: "#c98a4a", A: "#ecc48c",
   f: "#fff3cf",
   v: "#7a5c35", V: "#5e4428",
-  z: "#3d3a47"
+  z: "#3d3a47",
+  // 白天遊客的衣服、頭髮
+  x: "#8a4f4a", X: "#6b3a37", y: "#4f6b58", Y: "#3b5244", q: "#b59a6e", Q: "#8f7853",
+  l: "#a9a9b4", L: "#7d7d89", d: "#6a4a8a", D: "#523870", F: "#e7d9b8"
 };
 
 const mirror = rows => rows.map(r => r + [...r].reverse().join(""));
@@ -140,6 +143,27 @@ function teacher() {
   return out;
 }
 export const TEACHER = teacher();
+
+/* ---------- 白天的遊客：從老師換顏色、拿掉手電筒；小孩矮一點 ---------- */
+// o：hair／hairS 頭髮、coat／coatS 上衣、pants 褲子、bag／bagS 包、glasses 眼鏡、kid 小孩
+export function visitor(o) {
+  const swap = { h: o.hair, H: o.hairS, c: o.coat, C: o.coatS, p: o.pants, t: o.bag, T: o.bagS };
+  const out = {};
+  for (const [k, rows] of Object.entries(TEACHER)) {
+    let g = rows.map(r => [...r].map(ch => swap[ch] || ch));
+    // 拿掉手電筒（K 機身、f 鏡頭）
+    g = g.map(r => r.map(ch => ch === "f" ? "." : ch));
+    if (k.startsWith("down")) { g[17][2] = "."; g[18][2] = "."; }
+    if (k.startsWith("up")) { g[17][13] = "."; g[18][13] = "."; }
+    if (k.startsWith("left") || k.startsWith("right")) g = g.map((r, y) => y === 15 || y === 16 ? r.map((ch, x) => ch === "K" ? "." : ch) : r);
+    if (!o.glasses && (k.startsWith("down") || k.startsWith("left") || k.startsWith("right"))) g = g.map((r, y) => y === 8 ? r.map(ch => ch === "g" ? "s" : ch) : r);
+    let rr = g.map(r => r.join(""));
+    // 小孩：身體短兩排、腿短一排
+    if (o.kid) rr = rr.filter((_, y) => y !== 13 && y !== 15 && y !== 19);
+    out[k] = rr;
+  }
+  return out;
+}
 
 /* ---------- 夜班警衛（16×24，正面，大盤帽） ---------- */
 export const GUARD = put([...mirror([

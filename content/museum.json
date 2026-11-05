@@ -908,5 +908,27 @@
       "zh": "畫像的眼睛會跟著你，別怕，它們只是好奇。",
       "en": "The portraits' eyes follow you. Don't worry, they're just curious."
     }
+  ],
+  "guardDay": [
+    {
+      "zh": "請勿觸摸展品，拍照記得關閃光燈。",
+      "en": "Please don't touch the exhibits, and turn off your flash."
+    },
+    {
+      "zh": "商店在南邊，出口也在那裡。",
+      "en": "The shop is to the south. So is the exit."
+    },
+    {
+      "zh": "恐龍骨架白天很乖，晚上就不一定了。",
+      "en": "The dinosaur behaves in the daytime. Nights are another story."
+    },
+    {
+      "zh": "有些展品晚上會偷跑出去，白天你看不出來。",
+      "en": "Some exhibits sneak out at night. You'd never guess by day."
+    },
+    {
+      "zh": "慢慢看，今天的票不會過期。",
+      "en": "Take your time. Today's ticket doesn't expire."
+    }
   ]
 }

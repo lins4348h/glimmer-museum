@@ -1,6 +1,6 @@
 // 微光博物館｜前台
 // 點售票窗 → 抽到今晚的一張票根（100 句隨機，可以一直抽、可存成圖）→ 進館：俯視像素地圖
-// 館內三種看法：夜遊（暗，手電筒，展品活過來）、點燈（亮，展品乖乖站好）、全覽（館藏目錄）。
+// 館內三種看法：夜遊（暗，手電筒，展品活過來）、開館（白天，有遊客，展品乖乖站好）、全覽（館藏目錄）。
 // 抽到哪一句只在瀏覽器裡用，不記錄、不送出。
 import { objectSVG } from "./objects.js";
 import { createMap } from "./map.js";
@@ -148,7 +148,7 @@ function showTicket(fromSlot = false) {
   $("tk-go").focus({ preventScroll: true });
 }
 
-// 存成直式圖片（1080×1920），手機可以直接分享到相簿或限動
+// 存成圖片（只有票本身，1170×2160），手機可以直接分享到相簿或限動
 function wrap(x, text, maxW, byWord) {
   // 平均分行：先算要幾行，再用平均寬度折，避免最後一行只剩一個字
   const total = x.measureText(text).width, n = Math.max(1, Math.ceil(total / maxW));
@@ -163,29 +163,26 @@ function wrap(x, text, maxW, byWord) {
   return lines;
 }
 async function ticketImage() {
-  const W = 1080, H = 1920, wry = line.tone === "wry";
+  // 只存票本身：畫布就是票的大小，票以外透明；放大 1.5 倍，存下來比較清楚
+  const W = 780, H = 1440, SC = 1.5, wry = line.tone === "wry";
   const SERIF = '"Noto Serif TC", "Songti TC", serif', LATIN = '"Cormorant Garamond", "Times New Roman", serif', SANS = '"Noto Sans TC", sans-serif';
   if (document.fonts) await Promise.all([
     document.fonts.load(`700 46px ${SERIF}`, "微光博物館"), document.fonts.load(`500 54px ${SERIF}`, line.zh + "夜間入館券敬贈"), document.fonts.load(`700 46px ${SERIF}`, "0123456789."),
     document.fonts.load(`600 30px ${LATIN}`, "MUSEUM OF GLIMMERS"), document.fonts.load(`italic 500 40px ${LATIN}`, (line.en || "") + "Night Admission"),
     document.fonts.load(`400 26px ${SANS}`, "今晚的一句・館方碎念")
   ]).catch(() => {});
-  const c = document.createElement("canvas"); c.width = W; c.height = H;
-  const x = c.getContext("2d");
+  const c = document.createElement("canvas"); c.width = W * SC; c.height = H * SC;
+  const x = c.getContext("2d"); x.scale(SC, SC);
   const ls = v => { if ("letterSpacing" in x) x.letterSpacing = v; };
   // 燙金或月白銀箔，看句子的調性
   const gold = (x0, x1) => { const g = x.createLinearGradient(x0, 0, x1, 0);
     (wry ? [[0, "#9c742c"], [.2, "#f3dc9c"], [.38, "#c9993f"], [.55, "#f8e7b2"], [.74, "#a87c30"], [1, "#e9c97f"]]
       : [[0, "#7f8da6"], [.2, "#eef3fa"], [.38, "#a9b6cc"], [.55, "#f6f9fd"], [.74, "#8996ad"], [1, "#d7e0ec"]]).forEach(([o, col]) => g.addColorStop(o, col)); return g; };
   const AC = wry ? "232,200,137" : "207,217,232";
-  // 黑暗的展廳＋一圈暖光
-  x.fillStyle = "#04070d"; x.fillRect(0, 0, W, H);
-  let g = x.createRadialGradient(W / 2, H * .45, 60, W / 2, H * .45, 860);
-  g.addColorStop(0, "rgba(255,214,140,.2)"); g.addColorStop(.55, "rgba(255,214,140,.05)"); g.addColorStop(1, "rgba(255,214,140,0)");
-  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  let g;
   // 票：深墨藍厚卡，存根處左右各一個缺口
-  const tw = 780, th = 1440, tx = (W - tw) / 2, ty = 180, stubY = ty + th - 190, r = 22, rr = 18;
-  x.save(); x.translate(W / 2, ty + th / 2); x.rotate(-1.2 * Math.PI / 180); x.translate(-W / 2, -(ty + th / 2));
+  const tw = W, th = H, tx = 0, ty = 0, stubY = ty + th - 190, r = 22, rr = 18;
+  x.save();
   const shape = () => {
     x.beginPath();
     x.moveTo(tx + rr, ty); x.lineTo(tx + tw - rr, ty); x.quadraticCurveTo(tx + tw, ty, tx + tw, ty + rr);
@@ -195,9 +192,9 @@ async function ticketImage() {
     x.lineTo(tx, stubY + r); x.arc(tx, stubY, r, Math.PI / 2, -Math.PI / 2, true);
     x.lineTo(tx, ty + rr); x.quadraticCurveTo(tx, ty, tx + rr, ty); x.closePath();
   };
-  x.shadowColor = "rgba(0,0,0,.7)"; x.shadowBlur = 90; x.shadowOffsetY = 50; shape();
+  shape();
   g = x.createLinearGradient(tx, ty, tx + tw * .4, ty + th); g.addColorStop(0, "#13213f"); g.addColorStop(.55, "#0d1730"); g.addColorStop(1, "#0a1226");
-  x.fillStyle = g; x.fill(); x.shadowColor = "transparent";
+  x.fillStyle = g; x.fill();
   x.save(); shape(); x.clip();
   g = x.createRadialGradient(tx + tw * .3, ty, 20, tx + tw * .3, ty, 900); g.addColorStop(0, "rgba(80,110,170,.22)"); g.addColorStop(1, "rgba(80,110,170,0)");
   x.fillStyle = g; x.fillRect(tx, ty, tw, th);
@@ -249,8 +246,6 @@ async function ticketImage() {
   // 日期用襯線中文字型的數字（等高），英文字型的數字高低不一
   x.textAlign = "right"; x.fillStyle = gold(tx + tw - 330, tx + tw - 70); x.font = `700 46px ${SERIF}`; ls("4px"); x.fillText(dateStr(issuedAt), tx + tw - 66, stubY + 116);
   x.restore();
-  x.textAlign = "center"; x.fillStyle = `rgba(${AC},.8)`; x.font = `600 28px ${LATIN}`; ls("10px"); x.fillText("MUSEUM OF GLIMMERS", cx, 1760);
-  x.fillStyle = "rgba(236,229,212,.55)"; x.font = `500 26px ${SERIF}`; ls("10px"); x.fillText("引路人文創園區", cx, 1806);
   return new Promise(res => c.toBlob(res, "image/png"));
 }
 async function saveTicket() {
@@ -276,12 +271,13 @@ async function enter() {
   busy = false;
 }
 
-/* ---------- 三、館內：夜遊／點燈／全覽 ---------- */
+/* ---------- 三、館內：夜遊／開館／全覽 ---------- */
 let mode = null;
 const map = createMap($("map"), {
   floors: D.floors, exhibits: D.exhibits.filter(e => e.onDisplay), reduced: REDUCED,
-  guardLine: () => {
-    const pool = D.guard?.length ? D.guard : [{ zh: "慢慢逛，天亮前都還有時間。", en: "Take your time. We're open till dawn." }];
+  // 夜裡是夜班警衛，白天換一套台詞
+  guardLine: night => {
+    const pool = (night ? D.guard : D.guardDay)?.length ? (night ? D.guard : D.guardDay) : [{ zh: "慢慢逛，不用趕。", en: "Take your time." }];
     return pool[Math.floor(Math.random() * pool.length)];
   },
   openPlacard: (e, from) => openPlacard(e, from),
@@ -398,7 +394,7 @@ function toast(msg) {
   clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 2200);
 }
 function footHTML() {
-  return [`<span class="foot-name">微光博物館・引路人文創園區</span>`, ...D.footer.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`)]
+  return [`<span class="foot-name">微光博物館・引路人教育園區</span>`, ...D.footer.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`)]
     .join('<span class="dot">·</span>');
 }
 

@@ -39,17 +39,17 @@ body.is-lit .in-hud { background: linear-gradient(180deg, rgba(10, 18, 36, .94),
 .ms-thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / 3); border-radius: 999px;
   background: linear-gradient(180deg, #e2b85e, #d4a64a 55%, #b88a36); box-shadow: 0 4px 14px -4px rgba(212, 166, 74, .7);
   transition: transform .35s cubic-bezier(.4, 0, .2, 1); }
-.mode-switch[data-mode="lit"] .ms-thumb { transform: translateX(100%); }
+.mode-switch[data-mode="day"] .ms-thumb { transform: translateX(100%); }
 .mode-switch[data-mode="catalog"] .ms-thumb { transform: translateX(200%); }
-.mode-switch button { position: relative; z-index: 1; display: flex; align-items: baseline; justify-content: center; gap: 6px;
+.mode-switch button { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 6px; line-height: 1;
   min-height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: none; cursor: pointer;
   font-family: var(--f-serif); font-weight: 700; font-size: .92rem; letter-spacing: .2em; color: var(--text); transition: color .3s ease; }
-.mode-switch button i { font-family: var(--f-latin); font-style: italic; font-weight: 500; font-size: .82rem; letter-spacing: .04em; opacity: .7; }
+.mode-switch button i { font-family: var(--f-latin); font-style: italic; font-weight: 500; font-size: .86rem; line-height: 1; letter-spacing: .04em; opacity: .7; padding-top: 2px; }
 .mode-switch button[aria-pressed="true"] { color: #1a1408; }
 .in-veil { position: absolute; inset: 0; z-index: 25; background: #02040a; opacity: 0; pointer-events: none; transition: opacity .32s ease; }
 .in-veil.on { opacity: 1; }
 
-/* ================= 夜遊／點燈：俯視像素地圖 ================= */
+/* ================= 夜遊／開館：俯視像素地圖 ================= */
 .map { position: absolute; inset: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; background: #04070e; }
 .map:active { cursor: grabbing; }
 .m-cv { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; }

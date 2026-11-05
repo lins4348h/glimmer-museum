@@ -33,7 +33,7 @@ const exhibits = data.exhibits
     object: e.object, glow: e.glow || "gold", note: e.note || "", tags: e.tags || [], persona: e.persona || null,
     links: e.status === "open" ? (e.links || []) : []
   }));
-const payload = { floors: data.floors, exhibits, admission: data.admission, guard: data.guard || [], footer: FOOTER };
+const payload = { floors: data.floors, exhibits, admission: data.admission, guard: data.guard || [], guardDay: data.guardDay || [], footer: FOOTER };
 
 await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });

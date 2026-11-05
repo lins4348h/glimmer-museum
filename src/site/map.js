@@ -1,9 +1,9 @@
 // 微光博物館｜館內：俯視像素地圖
 // 一整張平面：中央大廳（鎮館之寶恐龍骨架、雕像、畫像、警衛），四周四個展廳。
 // 夜遊：館內暗，手電筒照路，展品活過來到處亂逛；你一靠近，它就跑回台座裝死，這時才能看說明牌。
-// 點燈：燈全開，展品乖乖待在台座上。
-// 先畫一張 1:1 的小畫布（一格 16 像素），再用最近鄰放大到螢幕，像素才會銳利。
-import { TEACHER, GUARD, STATUE, DINO, ITEMS, sprite, flipped } from "./pixels.js";
+// 開館（白天）：窗外是天光，有遊客在逛，展品乖乖待在台座上。
+// 先畫一張 1:1 的小畫布（一格 16 像素），再用最近鄰放大到螢幕：放大倍率取「整數個螢幕實體像素」，像素才會銳利。
+import { TEACHER, GUARD, STATUE, DINO, ITEMS, sprite, flipped, visitor } from "./pixels.js";
 
 const T = 16;                 // 一格的像素
 const MW = 66, MH = 45;       // 地圖大小（格）
@@ -230,8 +230,60 @@ export function createMap(root, opt) {
   const statues = STATUES.map(s => ({ x: s.x * T, y: s.y * T + T, pose: 0, near: false }));
   const p = { x: SPAWN.x, y: SPAWN.y, dir: "up", ang: -Math.PI / 2, moving: false, frameT: 0, frame: 0 };
 
+  /* ---------- 白天的遊客：安靜地逛，停在展品前看一下、坐長椅休息；不說話、不擋路 ---------- */
+  const LOOKS = [
+    { hair: "h", hairS: "H", coat: "x", coatS: "X", pants: "p", bag: "q", bagS: "Q" },
+    { hair: "l", hairS: "L", coat: "q", coatS: "Q", pants: "P", bag: "t", bagS: "T", glasses: true },
+    { hair: "H", hairS: "h", coat: "y", coatS: "Y", pants: "p", bag: "x", bagS: "X", kid: true },
+    { hair: "z", hairS: "k", coat: "N", coatS: "n", pants: "P", bag: "d", bagS: "D" },
+    { hair: "h", hairS: "H", coat: "d", coatS: "D", pants: "P", bag: "g", bagS: "b", kid: true },
+    { hair: "H", hairS: "h", coat: "q", coatS: "Q", pants: "p", bag: "F", bagS: "q", glasses: true },
+    { hair: "k", hairS: "z", coat: "i", coatS: "I", pants: "p", bag: "y", bagS: "Y" },
+    { hair: "h", hairS: "H", coat: "y", coatS: "Y", pants: "P", bag: "t", bagS: "T" },
+    { hair: "z", hairS: "k", coat: "x", coatS: "X", pants: "p", bag: "e", bagS: "E", kid: true }
+  ];
+  // 從一個廳走到另一個廳：先走到自己廳的門口、穿過通道、到大廳，再走進目標廳
+  const GATE = { west: [[18.4, 25.5], [24.8, 25.5]], north: [[33, 12.3], [33, 18.8]], east: [[46.6, 25.5], [41.2, 25.5]], south: [[33, 37.7], [33, 30.4]] };
+  const spots = [
+    ...slots.map(s => ({ x: s.tx * T + 8 + rnd(-3, 3), y: (s.ty + 1) * T + 14, face: "up", stay: [3, 7] })),
+    ...BENCHES.map(b => ({ x: b.x * T + 16 + rnd(-6, 6), y: b.y * T + 22, face: "down", stay: [5, 9] })),
+    { x: PLATFORM.cx * T - 30, y: PLATFORM.cy * T + 30, face: "up", stay: [3, 6] }, { x: PLATFORM.cx * T + 30, y: PLATFORM.cy * T + 30, face: "up", stay: [3, 6] }
+  ].filter(sp => walkable(sp.x, sp.y - 2));
+  const spotRoom = sp => roomAt(Math.floor(sp.x / T), Math.floor((sp.y - 4) / T)) || "hall";
+  const visitors = LOOKS.map((look, i) => {
+    const sp = spots[(i * 5) % spots.length];
+    return { look: visitor(look), key: "v" + i, kid: !!look.kid, x: sp.x, y: sp.y, dir: sp.face, frame: 0, frameT: 0, path: [], wait: rnd(1, 6), speed: rnd(26, 36) };
+  });
+  function routeTo(v, sp) {
+    const from = roomAt(Math.floor(v.x / T), Math.floor((v.y - 4) / T)) || "hall", to = spotRoom(sp), pts = [];
+    if (from !== to) {
+      if (from !== "hall") pts.push(GATE[from][0], GATE[from][1]);
+      if (to !== "hall") pts.push(GATE[to][1], GATE[to][0]);
+    }
+    v.path = [...pts.map(([x, y]) => ({ x: x * T + rnd(-6, 6), y: y * T + rnd(-4, 4) })), { x: sp.x, y: sp.y }];
+    v.goal = sp;
+  }
+  function updateVisitor(v, dt) {
+    if (reduced) return;
+    if (!v.path.length) {
+      v.frame = 0; v.wait -= dt;
+      if (v.wait <= 0) routeTo(v, spots[Math.floor(Math.random() * spots.length)]);
+      return;
+    }
+    const t = v.path[0], dx = t.x - v.x, dy = t.y - v.y, l = Math.hypot(dx, dy);
+    if (l < 1.5) {
+      v.path.shift();
+      if (!v.path.length) { v.dir = v.goal.face; v.wait = rnd(...v.goal.stay); }
+      return;
+    }
+    const st = Math.min(l, v.speed * dt);
+    v.x += dx / l * st; v.y += dy / l * st;
+    v.dir = Math.abs(dx) > Math.abs(dy) * .9 ? (dx < 0 ? "left" : "right") : (dy < 0 ? "up" : "down");
+    v.frameT += dt; if (v.frameT > .16) { v.frameT = 0; v.frame = v.frame === 1 ? 2 : 1; }
+  }
+
   let night = true, running = false, raf = 0, last = 0;
-  let S = 3, vw = 0, vh = 0, dpr = 1, camX = 0, camY = 0, curRoom = "hall", target = null, helpShown = false;
+  let S = 3, K = 3, vw = 0, vh = 0, dpr = 1, camX = 0, camY = 0, curRoom = "hall", target = null, helpShown = false;
   const keys = new Set();
   const joy = { id: null, bx: 0, by: 0, dx: 0, dy: 0 };
 
@@ -258,8 +310,11 @@ export function createMap(root, opt) {
   /* ---------- 尺寸 ---------- */
   function resize() {
     const W = root.clientWidth || innerWidth, H = root.clientHeight || innerHeight;
-    S = clamp(Math.round(Math.min(W, H * 1.6) / 440), 2, 4);
-    dpr = Math.min(2, window.devicePixelRatio || 1);
+    // 放大倍率 k＝一個地圖像素佔幾個螢幕實體像素（一定是整數，才不會有的粗有的細）
+    dpr = Math.min(3, window.devicePixelRatio || 1);
+    const want = clamp(Math.min(W, H * 1.6) / 660, 1.33, 3);
+    K = Math.max(2, Math.round(want * dpr));
+    S = K / dpr;
     vw = Math.ceil(W / S) + 1; vh = Math.ceil(H / S) + 1;
     fc.width = lc.width = vw; fc.height = lc.height = vh;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
@@ -287,7 +342,7 @@ export function createMap(root, opt) {
     let { x: ix, y: iy } = blockedNow ? { x: 0, y: 0 } : inputVec();
     // 點一下目的地（目前只有出口的提示會用到）
     if (!ix && !iy && target) { const dx = target.x - p.x, dy = target.y - p.y, d = Math.hypot(dx, dy); if (d < 3) target = null; else { ix = dx / d; iy = dy / d; } }
-    const sp = 74;
+    const sp = 133;
     p.moving = !!(ix || iy);
     if (p.moving) {
       if (helpShown) hideHelp();
@@ -297,7 +352,7 @@ export function createMap(root, opt) {
       const fits = (X, Y) => walkable(X - 5, Y - 1) && walkable(X + 5, Y - 1) && walkable(X - 5, Y - 5) && walkable(X + 5, Y - 5);
       if (fits(nx, p.y)) p.x = nx;
       if (fits(p.x, ny)) p.y = ny;
-      p.frameT += dt; if (p.frameT > .15) { p.frameT = 0; p.frame = p.frame === 1 ? 2 : 1; }
+      p.frameT += dt; if (p.frameT > .1) { p.frameT = 0; p.frame = p.frame === 1 ? 2 : 1; }
     } else { p.frame = 0; p.frameT = 0; }
     if (reduced) p.frame = 0;
     // 換房間：上方浮出廳名
@@ -305,6 +360,7 @@ export function createMap(root, opt) {
     if (room && room !== curRoom) { curRoom = room; showBanner(room); }
     // 展品
     for (const it of items) updateItem(it, dt, ts);
+    if (!night) for (const v of visitors) updateVisitor(v, dt);
     updateDino(dt, ts);
     for (const s of statues) {
       const d = Math.hypot(p.x - s.x, p.y - s.y);
@@ -314,14 +370,12 @@ export function createMap(root, opt) {
     }
     // 警衛
     const gd = Math.hypot(p.x - GUARD_AT.x, p.y - GUARD_AT.y);
-    if (gd < 40 && !update.guardOn) { update.guardOn = true; const l = opt.guardLine(); say("guard", `<b>夜班警衛</b>${esc(l.zh)}${l.en ? `<i>${esc(l.en)}</i>` : ""}`, 4200); }
+    if (gd < 40 && !update.guardOn) { update.guardOn = true; const l = opt.guardLine(night); say("guard", `<b>${night ? "夜班警衛" : "警衛"}</b>${esc(l.zh)}${l.en ? `<i>${esc(l.en)}</i>` : ""}`, 4200); }
     else if (gd > 70) update.guardOn = false;
     // 鏡頭：跟著人，小地圖置中
     const mw = MW * T, mh = MH * T;
-    const tx = mw <= vw ? (mw - vw) / 2 : clamp(p.x - vw / 2, 0, mw - vw);
-    const ty = mh <= vh ? (mh - vh) / 2 : clamp(p.y - 10 - vh / 2, 0, mh - vh);
-    const k = reduced ? 1 : Math.min(1, dt * 8);
-    camX += (tx - camX) * k; camY += (ty - camY) * k;
+    camX = mw <= vw ? Math.round((mw - vw) / 2) : clamp(Math.round(p.x) - (vw >> 1), 0, mw - vw);
+    camY = mh <= vh ? Math.round((mh - vh) / 2) : clamp(Math.round(p.y) - 10 - (vh >> 1), 0, mh - vh);
     nearest();
   }
   function updateItem(it, dt, ts) {
@@ -399,7 +453,7 @@ export function createMap(root, opt) {
       ? `<b>${esc(best.it.e.title)}</b><span>看說明牌${how}</span>`
       : `<b>出口</b><span>回到售票口${how}</span>`;
     act.hidden = false;
-    // 點燈時第一次走近，也讓它說一句
+    // 白天第一次走近，也讓它說一句
     if (best.kind === "item" && !best.it.quipShown && best.it.e.persona?.quip) { best.it.quipShown = true; if (!night || reduced) say("item" + best.it.e.id, esc(best.it.e.persona.quip), 3400); }
   }
   function interact() {
@@ -417,6 +471,12 @@ export function createMap(root, opt) {
     fx.drawImage(mapCv, -cx, -cy);
     // 畫像：夜裡眼睛跟著你
     for (const pt of PORTRAITS) drawPortrait(pt.x * T - cx, ROOMS.hall.y * T + 2 - cy, pt.x * T);
+    // 白天：窗外是天光
+    if (!night) for (const w of wins) {
+      const X = w.x - cx, Y = w.y - cy, f = (a, b, ww, hh, c) => { fx.fillStyle = c; fx.fillRect(X + a, Y + b, ww, hh); };
+      f(3, 3, 10, 19, "#a9c6e4"); f(4, 2, 8, 1, "#a9c6e4"); f(5, 1, 6, 1, "#a9c6e4"); f(3, 3, 10, 6, "#d6e6f5");
+      f(7, 2, 2, 20, "#0e1729"); f(3, 10, 10, 1, "#0e1729"); f(3, 16, 10, 1, "#0e1729"); f(4, 4, 2, 4, "rgba(255,255,255,.5)");
+    }
     // 台座上的玻璃罩
     for (const it of items) {
       const X = it.tx * T - cx, Y = it.ty * T - cy;
@@ -428,6 +488,7 @@ export function createMap(root, opt) {
     for (const it of items) list.push({ y: it.y + (it.state === "home" ? -20 : 0), draw: () => drawItem(it, ts, cx, cy) });
     list.push({ y: dino.y, draw: () => drawDino(cx, cy) });
     for (const s of statues) list.push({ y: s.y, draw: () => blit(sprite(STATUE[s.pose], "st" + s.pose), s.x - 8 - cx, s.y - 24 - cy) });
+    if (!night) for (const v of visitors) list.push({ y: v.y, draw: () => blit(sprite(v.look[v.dir + v.frame], v.key + v.dir + v.frame), Math.round(v.x) - 8 - cx, Math.round(v.y) - (v.kid ? 21 : 24) - cy) });
     list.push({ y: GUARD_AT.y, draw: () => blit(sprite(GUARD, "guard"), GUARD_AT.x - 8 - cx, GUARD_AT.y - 24 - cy) });
     list.push({ y: p.y, draw: () => blit(sprite(TEACHER[p.dir + p.frame], "t" + p.dir + p.frame), Math.round(p.x) - 8 - cx, Math.round(p.y) - 24 - cy) });
     list.sort((a, b) => a.y - b.y).forEach(o => o.draw());
@@ -440,8 +501,7 @@ export function createMap(root, opt) {
     if (night) lightPass(cx, cy, ts); else litPass(cx, cy);
     // 放大到螢幕
     sctx.imageSmoothingEnabled = false;
-    const k = S * dpr;
-    sctx.drawImage(fc, 0, 0, vw, vh, 0, 0, Math.round(vw * k), Math.round(vh * k));
+    sctx.drawImage(fc, 0, 0, vw, vh, 0, 0, vw * K, vh * K);
     placeDom(cx, cy);
   }
   function blit(img, X, Y, flip) { fx.drawImage(flip ? flipped(img, img.__k || (img.__k = "f" + Math.random())) : img, Math.round(X), Math.round(Y)); }
@@ -539,12 +599,16 @@ export function createMap(root, opt) {
     for (const l of LAMPS) { const g = fx.createRadialGradient(l.x * T - cx, l.y * T - 8 - cy, 0, l.x * T - cx, l.y * T - 8 - cy, 26); g.addColorStop(0, "rgba(255,200,120,.16)"); g.addColorStop(1, "rgba(255,200,120,0)"); fx.fillStyle = g; fx.fillRect(l.x * T - cx - 26, l.y * T - 34 - cy, 52, 52); }
     fx.globalCompositeOperation = "source-over";
   }
-  // 點燈：大廳的吊燈暖光
+  // 白天：整體提亮一點、天窗灑下一圈日光、每扇窗在地上留一塊光
   function litPass(cx, cy) {
+    fx.globalCompositeOperation = "screen";
+    fx.fillStyle = "rgba(96,88,72,.3)"; fx.fillRect(0, 0, vw, vh);
     fx.globalCompositeOperation = "lighter";
-    const g = fx.createRadialGradient(PLATFORM.cx * T - cx, PLATFORM.cy * T - cy, 0, PLATFORM.cx * T - cx, PLATFORM.cy * T - cy, 150);
-    g.addColorStop(0, "rgba(255,206,130,.12)"); g.addColorStop(1, "rgba(255,206,130,0)");
+    const g = fx.createRadialGradient(PLATFORM.cx * T - cx, PLATFORM.cy * T - cy, 0, PLATFORM.cx * T - cx, PLATFORM.cy * T - cy, 120);
+    g.addColorStop(0, "rgba(255,232,180,.16)"); g.addColorStop(1, "rgba(255,232,180,0)");
     fx.fillStyle = g; fx.fillRect(0, 0, vw, vh);
+    fx.fillStyle = "rgba(255,232,186,.1)";
+    for (const w of wins) { const X = w.x - cx, Y = w.y + 30 - cy; fx.beginPath(); fx.moveTo(X + 2, Y); fx.lineTo(X + 14, Y); fx.lineTo(X + 30, Y + 34); fx.lineTo(X + 18, Y + 34); fx.closePath(); fx.fill(); }
     fx.globalCompositeOperation = "source-over";
   }
   function placeDom(cx, cy) {
@@ -610,11 +674,11 @@ export function createMap(root, opt) {
 
   function loop() { cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(frame); }
   return {
-    // night：true＝夜遊、false＝點燈
+    // night：true＝夜遊、false＝開館（白天）
     start(isNight) {
       night = isNight; running = true; resize();
       Object.assign(p, { x: SPAWN.x, y: SPAWN.y, dir: "up", ang: -Math.PI / 2, frame: 0 });
-      camX = clamp(p.x - vw / 2, 0, Math.max(0, MW * T - vw)); camY = clamp(p.y - 10 - vh / 2, 0, Math.max(0, MH * T - vh));
+      camX = clamp(Math.round(p.x) - (vw >> 1), 0, Math.max(0, MW * T - vw)); camY = clamp(Math.round(p.y) - 10 - (vh >> 1), 0, Math.max(0, MH * T - vh));
       curRoom = "hall"; showBanner("hall"); loop();
       if (!helpShown) showHelp();
     },
