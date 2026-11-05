@@ -12,6 +12,8 @@ const FOOTER = [
 ];
 const GLOWS = ["gold", "moon", "mist", "rose"];
 const STATUSES = ["open", "renovating", "draft"];
+const MOVES = ["hop", "roll", "waddle", "float", "scuttle", "spin", "tilt", "slide", "wobble", "none"];
+const TONES = ["tender", "wry"];
 
 const data = JSON.parse(await readFile("content/museum.json", "utf8"));
 const errs = check(data);
@@ -28,10 +30,10 @@ const exhibits = data.exhibits
   .map(e => ({
     id: e.id, floor: e.floor, status: e.status, onDisplay: e.onDisplay !== false,
     title: e.title, en: e.en || "", kind: e.kind || "", version: e.version || "",
-    object: e.object, glow: e.glow || "gold", note: e.note || "", tags: e.tags || [],
+    object: e.object, glow: e.glow || "gold", note: e.note || "", tags: e.tags || [], persona: e.persona || null,
     links: e.status === "open" ? (e.links || []) : []
   }));
-const payload = { floors: data.floors, exhibits, admission: data.admission, footer: FOOTER };
+const payload = { floors: data.floors, exhibits, admission: data.admission, guard: data.guard || [], footer: FOOTER };
 
 await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
@@ -66,15 +68,15 @@ function check(d) {
     if (!OBJECTS[e.object]) errs.push(`${who}的物件「${e.object}」不在圖庫裡`);
     if (e.glow && !GLOWS.includes(e.glow)) errs.push(`${who}的光色「${e.glow}」不對`);
   }
-  // 售票口的展區選項：floor 空白＝全館
-  const zones = d.admission?.zones || [];
-  if (!zones.length) errs.push("售票口沒有任何展區選項");
-  for (const z of zones) {
-    const who = `展區選項「${z.choice || z.id}」`;
-    if (!z.id || !z.choice || !z.numeral) errs.push(`${who}缺 id、選項文字或羅馬數字`);
-    if (z.floor && !fl.has(z.floor)) errs.push(`${who}的樓層「${z.floor}」不存在`);
-    if (!z.floor && !z.name) errs.push(`${who}是全館，要寫 name`);
-    if (!z.lines?.length || z.lines.some(l => !l.zh)) errs.push(`${who}沒有夜班警衛的話`);
-  }
+  // 展品的個性：怎麼動、被抓到時說什麼
+  for (const e of d.exhibits) if (e.persona?.move && !MOVES.includes(e.persona.move)) errs.push(`展品「${e.title}」的動法「${e.persona.move}」不對（${MOVES.join("／")}）`);
+  // 售票口的票根：一句話＋調性（tender 感性、wry 幽默）
+  const lines = d.admission?.lines || [];
+  if (!lines.length) errs.push("售票口沒有任何票根的句子");
+  lines.forEach((l, i) => {
+    if (!l.zh) errs.push(`第 ${i + 1} 句票根沒有中文`);
+    if (!TONES.includes(l.tone)) errs.push(`第 ${i + 1} 句票根的調性「${l.tone}」不對（tender／wry）`);
+  });
+  if (d.floors.length > 4) errs.push("地圖只有四個展廳的位置（西、北、東、南），樓層最多 4 個");
   return errs;
 }

@@ -34,38 +34,30 @@
       <p class="kicker">Museum of Glimmers</p>
       <h1 class="title" id="booth-title">微光博物館</h1>
     </header>
-    <!-- 掛在牆上的樓層牌：點一行，向售票窗買那一層的票 -->
-    <div class="wall-sign">
-      <span class="ws-rod l" aria-hidden="true"></span><span class="ws-rod r" aria-hidden="true"></span>
-      <div class="ws-board">
-        <p class="ws-head">今晚，想去哪裡走走？<i>Where to, tonight?</i></p>
-        <div class="zones" id="zones" role="group" aria-label="選一個展區"></div>
-      </div>
-      <p class="ws-hint">點一個展區，向售票窗買票</p>
-    </div>
+    <p class="lobby-hint">點售票窗，領今晚的票</p>
     <div class="lobby-gap"></div>
     <!-- 售票亭：拱頂山牆、凹槽壁柱、拱形暖光窗、通話孔、大理石檯面、出票口、鑲板台座 -->
-    <div class="booth" id="booth">
-      <div class="booth-crown" aria-hidden="true">
+    <button class="booth" id="booth" type="button" aria-label="點售票窗，領今晚的票">
+      <span class="booth-crown" aria-hidden="true">
         <svg class="crown-emblem" viewBox="0 0 30 38"><use href="#emblem"/></svg>
-      </div>
-      <div class="booth-cornice" aria-hidden="true"></div>
-      <div class="booth-body">
+      </span>
+      <span class="booth-cornice" aria-hidden="true"></span>
+      <span class="booth-body">
         <span class="pilaster l" aria-hidden="true"></span><span class="pilaster r" aria-hidden="true"></span>
-        <div class="booth-frame">
-          <div class="booth-glass">
-            <div class="booth-board">
-              <p class="bb-sign">夜間售票</p>
-              <p class="bb-en">Night Admission</p>
-            </div>
+        <span class="booth-frame">
+          <span class="booth-glass">
+            <span class="booth-board">
+              <span class="bb-sign">夜間售票</span>
+              <span class="bb-en">Night Admission</span>
+            </span>
             <span class="booth-grille" aria-hidden="true"></span>
-          </div>
-        </div>
-      </div>
-      <div class="booth-ledge"><span class="booth-slot" id="booth-slot"></span></div>
-      <div class="booth-base" aria-hidden="true"><span class="booth-panel"></span></div>
-      <div class="booth-plinth" aria-hidden="true"></div>
-    </div>
+          </span>
+        </span>
+      </span>
+      <span class="booth-ledge"><span class="booth-slot" id="booth-slot"></span></span>
+      <span class="booth-base" aria-hidden="true"><span class="booth-panel"></span></span>
+      <span class="booth-plinth" aria-hidden="true"></span>
+    </button>
     <div class="lobby-floor">
       <div class="floor-tiles" aria-hidden="true"></div>
       <button class="link-btn skip" id="skip" type="button">略過，直接進館</button>
@@ -75,7 +67,7 @@
 </section>
 
 <!-- 二、今晚的票 -->
-<section class="scene ticket-scene" id="ticket-scene" hidden aria-labelledby="tk-zone">
+<section class="scene ticket-scene" id="ticket-scene" hidden aria-labelledby="tk-quote">
   <div class="ticket-stage">
     <article class="ticket" id="ticket">
       <div class="tk tk-main">
@@ -84,13 +76,12 @@
           <svg class="tk-emblem" viewBox="0 0 30 38" aria-hidden="true"><use href="#emblem"/></svg>
           <p class="tk-museum foil">Museum of Glimmers</p>
           <p class="tk-name">微光博物館</p>
-          <p class="tk-numeral foil" id="tk-numeral">II</p>
-          <h2 class="tk-zone" id="tk-zone"></h2>
-          <p class="tk-zone-en" id="tk-zone-en"></p>
           <div class="tk-rule"></div>
+          <p class="tk-kicker" id="tk-kicker">今晚的一句</p>
           <p class="tk-quote" id="tk-quote"></p>
           <p class="tk-quote-en" id="tk-quote-en"></p>
-          <p class="tk-sign">夜班警衛　Night Guard</p>
+          <div class="tk-rule"></div>
+          <p class="tk-sign">微光博物館　敬贈</p>
         </div>
       </div>
       <div class="tk tk-stub">
@@ -101,34 +92,27 @@
       </div>
     </article>
     <div class="tk-actions">
-      <button class="btn" id="tk-go" type="button">前往</button>
+      <button class="btn" id="tk-go" type="button">進館 →</button>
       <div class="tk-minor">
-        <button class="link-btn" id="tk-save" type="button">存下這張票根</button>
-        <button class="link-btn" id="tk-again" type="button">換一個展區</button>
+        <button class="link-btn" id="tk-save" type="button">存下票根</button>
+        <button class="link-btn" id="tk-again" type="button">再抽一張</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 三、熄燈 -->
-<section class="scene night-scene" id="night-scene" hidden aria-live="polite">
-  <div class="night-words">
-    <p class="nw-1">白天，你是老師；</p>
-    <p class="nw-2">熄燈後，你是你自己。</p>
-  </div>
-</section>
-
-<!-- 四、館內：夜遊（提著手電筒走）／全覽（燈全亮，館藏目錄） -->
+<!-- 三、館內：夜遊（暗，手電筒）／點燈（亮）／全覽（館藏目錄） -->
 <section class="scene inside-scene" id="inside-scene" hidden aria-label="館內">
   <div class="in-hud">
     <button class="link-btn hud-back" id="hud-back" type="button">← 售票口</button>
     <div class="mode-switch" id="mode-switch" role="group" aria-label="參觀方式">
       <span class="ms-thumb" aria-hidden="true"></span>
-      <button type="button" data-mode="walk" aria-pressed="true">夜遊<i>Wander</i></button>
+      <button type="button" data-mode="night" aria-pressed="true">夜遊<i>Wander</i></button>
+      <button type="button" data-mode="lit" aria-pressed="false">點燈<i>Lights On</i></button>
       <button type="button" data-mode="catalog" aria-pressed="false">全覽<i>Overview</i></button>
     </div>
   </div>
-  <div class="walk" id="walk" hidden></div>
+  <div class="map" id="map" hidden></div>
   <div class="catalog" id="catalog" hidden></div>
   <div class="in-veil" id="in-veil" aria-hidden="true"></div>
 </section>
@@ -142,6 +126,7 @@
       <p class="pl-floor" id="pl-floor"></p>
       <h3 class="pl-title" id="pl-title"></h3>
       <p class="pl-en" id="pl-en"></p>
+      <p class="pl-quip" id="pl-quip" hidden></p>
       <dl class="pl-meta" id="pl-meta"></dl>
       <p class="pl-note" id="pl-note"></p>
       <ul class="pl-tags" id="pl-tags"></ul>

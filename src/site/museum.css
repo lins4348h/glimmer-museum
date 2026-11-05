@@ -137,51 +137,27 @@ body.at-booth .hall-floor { opacity: 0; }
   transition: opacity .6s ease, transform .6s ease; }
 .booth-scene.leaving { opacity: 0; transform: translateY(-8px); pointer-events: none; }
 /* --bw：售票亭的寬，跟著螢幕高度走；樓層牌、地板都照它排 */
-.lobby { --bw: clamp(150px, min(56vw, calc(36svh - 120px)), 232px);
+.lobby { --bw: clamp(160px, min(62vw, calc(48svh - 150px)), 270px);
   position: relative; min-height: 100%; display: flex; flex-direction: column; align-items: center;
   padding: calc(clamp(18px, 4.6svh, 48px) + env(safe-area-inset-top, 0px)) 16px 0; }
 .scene-head { text-align: center; }
 .lobby-gap { flex: 1 0 clamp(16px, 3.4svh, 40px); }
 
-/* 牆上的樓層牌：深色漆板、雙層燙金框、四角銅釘，用兩根黃銅吊桿掛著 */
-.wall-sign { position: relative; width: min(clamp(290px, calc(var(--bw) * 1.5), 330px), 100%); margin-top: clamp(22px, 4svh, 42px); container-type: inline-size; }
-.ws-rod { position: absolute; top: clamp(-36px, -3.8svh, -20px); bottom: 100%; width: 1.5px; background: linear-gradient(180deg, rgba(232, 200, 137, .12), #c9a055); }
-.ws-rod::after { content: ""; position: absolute; left: 50%; bottom: -3px; width: 5px; height: 5px; border-radius: 50%; transform: translateX(-50%); background: #e8c889; }
-.ws-rod.l { left: 18%; } .ws-rod.r { right: 18%; }
-.ws-board { position: relative; padding: clamp(10px, 1.7svh, 15px) clamp(12px, 5cqi, 18px) clamp(6px, 1.1svh, 9px); border-radius: 2px;
-  background:
-    radial-gradient(circle at 8px 8px, #e8c889 1.4px, transparent 2px), radial-gradient(circle at calc(100% - 8px) 8px, #e8c889 1.4px, transparent 2px),
-    radial-gradient(circle at 8px calc(100% - 8px), #e8c889 1.4px, transparent 2px), radial-gradient(circle at calc(100% - 8px) calc(100% - 8px), #e8c889 1.4px, transparent 2px),
-    linear-gradient(180deg, #16233e, #0d172c);
-  box-shadow: 0 0 0 1px rgba(232, 200, 137, .55), 0 0 0 4px #0a1222, 0 0 0 5px rgba(232, 200, 137, .26),
-    0 24px 44px -18px rgba(0, 0, 0, .9), 0 0 60px rgba(255, 200, 120, .06); }
-.ws-head { margin: 0 0 clamp(3px, .8svh, 7px); text-align: center; font-family: var(--f-serif); font-weight: 700; color: #f3e7c9;
-  font-size: clamp(.86rem, 2svh, .98rem); letter-spacing: .2em; text-indent: .2em; line-height: 1.5; }
-.ws-head i { display: block; font-family: var(--f-latin); font-style: italic; font-weight: 500; font-size: .9em; letter-spacing: .08em; text-indent: .08em; color: var(--gold-soft); opacity: .7; }
-.zones { display: grid; }
-.zone { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: clamp(32px, 4.3svh, 38px); padding: 0 8px;
-  border: 0; border-top: 1px solid rgba(212, 166, 74, .15); background: transparent; color: var(--text); cursor: pointer; text-align: left;
-  transition: background .25s ease; }
-.zone-no { flex: 0 0 26px; font-family: var(--f-latin); font-weight: 600; font-size: 1.12rem; line-height: 1; text-align: center; color: var(--gold); transition: color .25s ease, text-shadow .25s ease; }
-.zone-name { font-family: var(--f-serif); font-weight: 700; font-size: .9rem; letter-spacing: .14em; white-space: nowrap; }
-.zone-dots { flex: 1; min-width: 10px; border-bottom: 1px dotted rgba(232, 200, 137, .3); }
-.zone-floor { font-size: .74rem; letter-spacing: .08em; color: var(--muted); white-space: nowrap; }
-.zone-floor em { font-style: normal; }
-@container (max-width: 300px) { .zone-floor em { display: none; } }
-.zone::after { content: ""; position: absolute; left: 0; top: 20%; bottom: 20%; width: 2px; background: var(--gold); opacity: 0; transition: opacity .25s ease; }
-@media (hover: hover) { .zone:hover { background: linear-gradient(90deg, rgba(212, 166, 74, .18), rgba(212, 166, 74, .02)); }
-  .zone:hover .zone-no { color: #f6e3a8; text-shadow: 0 0 12px rgba(232, 200, 137, .7); } .zone:hover::after { opacity: 1; } }
-.zone.on { background: linear-gradient(90deg, rgba(212, 166, 74, .24), rgba(212, 166, 74, .03)); }
-.zone.on .zone-no { color: #f6e3a8; text-shadow: 0 0 12px rgba(232, 200, 137, .8); } .zone.on::after { opacity: 1; }
-/* 一進來：四行由上到下依序亮一次，像在招手 */
-.zones.wave .zone { animation: row-wave 1.2s ease var(--d) both; }
-.zones.wave .zone-no { animation: no-wave 1.2s ease var(--d) both; }
-@keyframes row-wave { 0%, 100% { background-color: transparent; } 40% { background-color: rgba(212, 166, 74, .2); } }
-@keyframes no-wave { 0%, 100% { text-shadow: none; } 40% { text-shadow: 0 0 14px rgba(246, 227, 168, .9); color: #f6e3a8; } }
-.ws-hint { margin: clamp(8px, 1.3svh, 12px) 0 0; text-align: center; font-size: .74rem; letter-spacing: .18em; color: var(--muted); opacity: .85; }
+/* 館名下一行小字：告訴訪客點哪裡 */
+.lobby-hint { margin: clamp(10px, 1.8svh, 18px) 0 0; font-size: .8rem; letter-spacing: .3em; text-indent: .3em; color: var(--gold-soft); opacity: .8;
+  animation: hint-breathe 3.2s ease-in-out infinite; }
+@keyframes hint-breathe { 0%, 100% { opacity: .5; } 50% { opacity: .95; } }
 
 /* 售票亭：所有尺寸用亭子自己的寬（cqi）算，縮放時比例不變 */
-.booth { position: relative; z-index: 2; flex: none; width: var(--bw); container-type: inline-size; }
+/* 整座售票亭就是按鈕：點窗口出票 */
+.booth { position: relative; z-index: 2; flex: none; display: block; width: var(--bw); container-type: inline-size;
+  padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.booth-cornice, .booth-body, .booth-ledge, .booth-base, .booth-plinth, .booth-frame, .booth-glass, .pilaster, .booth-slot, .booth-grille { display: block; }
+.booth:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: 10px; border-radius: 4px; }
+@media (hover: hover) { .booth:hover .booth-glass { filter: brightness(1.1); } .booth:hover .booth-slot { box-shadow: 0 -1.2cqi 5cqi rgba(255, 214, 140, .8); } }
+/* 玻璃慢慢呼吸，像在等你 */
+body.at-booth .booth-frame { animation: glass-breathe 3.2s ease-in-out infinite; }
+@keyframes glass-breathe { 0%, 100% { box-shadow: 0 0 18cqi rgba(255, 190, 100, .16); } 50% { box-shadow: 0 0 28cqi rgba(255, 196, 110, .34); } }
 .booth::before { content: ""; position: absolute; left: 50%; top: 38%; width: 330cqi; height: 230cqi; transform: translate(-50%, -50%); z-index: -1; pointer-events: none;
   background: radial-gradient(closest-side, rgba(255, 196, 110, .13), rgba(255, 196, 110, .04) 55%, transparent); }
 /* 地上的暖光與接觸陰影 */
@@ -220,10 +196,10 @@ body.at-booth .hall-floor { opacity: 0; }
 .booth-glass::after { content: ""; position: absolute; left: 9%; top: 9%; width: 22%; height: 54%; border-radius: 50%; pointer-events: none;
   background: linear-gradient(160deg, rgba(255, 255, 255, .26), transparent 60%); filter: blur(1.6cqi); }
 .booth.issuing .booth-glass { filter: brightness(1.18); }
-.booth-board { position: absolute; left: 6%; right: 6%; top: 30%; z-index: 2; text-align: center; }
-.bb-sign { margin: 0; font-family: var(--f-serif); font-weight: 700; font-size: 8.4cqi; letter-spacing: .4em; text-indent: .4em; color: #3a250c; line-height: 1.3;
+.booth-board { position: absolute; left: 6%; right: 6%; top: 30%; z-index: 2; display: grid; text-align: center; }
+.bb-sign { display: block; margin: 0; font-family: var(--f-serif); font-weight: 700; font-size: 8.4cqi; letter-spacing: .4em; text-indent: .4em; color: #3a250c; line-height: 1.3;
   text-shadow: 0 1px 0 rgba(255, 236, 200, .5); }
-.bb-en { margin: 1.4cqi 0 0; font-family: var(--f-latin); font-style: italic; font-size: 5.6cqi; letter-spacing: .14em; text-indent: .14em; color: #6b4a20; }
+.bb-en { display: block; margin: 1.4cqi 0 0; font-family: var(--f-latin); font-style: italic; font-size: 5.6cqi; letter-spacing: .14em; text-indent: .14em; color: #6b4a20; }
 .booth-grille { position: absolute; left: 50%; bottom: 13%; width: 15cqi; height: 15cqi; transform: translateX(-50%); border-radius: 50%;
   background:
     radial-gradient(circle, #5b3d16 0 12%, transparent 13%),
@@ -239,7 +215,7 @@ body.at-booth .hall-floor { opacity: 0; }
 .booth-base { position: relative; height: 40cqi; padding: 6cqi 10cqi 5cqi;
   background: linear-gradient(90deg, #0b1529, #172443 18%, #1a2a4b 50%, #152242 82%, #0a1426);
   box-shadow: inset 0 0 0 .5cqi rgba(212, 166, 74, .1), inset 0 4cqi 6cqi -3cqi rgba(0, 0, 0, .5); }
-.booth-panel { display: block; height: 100%; border-radius: .6cqi;
+.booth-panel { display: block !important; height: 100%; border-radius: .6cqi;
   box-shadow: inset 0 0 0 .35cqi rgba(232, 200, 137, .38), inset 0 0 0 1.6cqi #12203c, inset 0 0 0 1.9cqi rgba(232, 200, 137, .16), inset 0 -6cqi 10cqi rgba(0, 0, 0, .3); }
 .booth-plinth { position: relative; height: 4.6cqi; margin: 0 -3.4cqi; border-radius: .4cqi;
   background: linear-gradient(180deg, #23365c, #0a1222); box-shadow: inset 0 .35cqi 0 rgba(232, 200, 137, .5), 0 3cqi 6cqi rgba(0, 0, 0, .7); }
@@ -255,16 +231,6 @@ body.at-booth .hall-floor { opacity: 0; }
 .site-foot a:hover { color: var(--gold-soft); }
 .site-foot .dot { opacity: .4; }
 
-/* ---------- 三、熄燈（進館前，節奏要快） ---------- */
-.night-scene { display: grid; place-items: center; text-align: center; padding: 16px 16px 12vh; pointer-events: none; }
-.night-words p { margin: 0; font-family: var(--f-serif); font-weight: 700; letter-spacing: .26em;
-  font-size: clamp(1.4rem, 3.6vw, 2.4rem); color: #f3e7c9; opacity: 0;
-  text-shadow: 0 0 24px rgba(232, 200, 137, .35); }
-.night-words .nw-2 { margin-top: .5em; color: var(--gold-soft); }
-.night-scene.play .nw-1 { animation: rise .9s ease .15s both; }
-.night-scene.play .nw-2 { animation: rise .9s ease .85s both; }
-@keyframes rise { from { opacity: 0; transform: translateY(12px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
-
 /* ---------- 二、今晚的票：深墨藍厚卡＋燙金 ---------- */
 .ticket-scene { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .ticket-stage { min-height: 100%; display: grid; place-items: center; align-content: center; gap: clamp(10px, 2.6vh, 22px);
@@ -272,6 +238,11 @@ body.at-booth .hall-floor { opacity: 0; }
 /* 領票時館內先暗下來，只留一圈暖光照在票上 */
 .ticket-stage::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; animation: fade-in .6s ease both;
   background: radial-gradient(38% 46% at 50% 44%, rgba(255, 214, 140, .16), rgba(255, 214, 140, .04) 55%, transparent 75%), rgba(3, 6, 12, .78); }
+.ticket { --ac: 232 200 137; }
+.ticket.tone-tender { --ac: 207 217 232; }
+.ticket.tone-tender .foil { background: linear-gradient(100deg, #7f8da6 0%, #eef3fa 20%, #a9b6cc 38%, #f6f9fd 55%, #8996ad 74%, #d7e0ec 100%);
+  -webkit-background-clip: text; background-clip: text; }
+.ticket.tone-tender .tk-emblem { filter: grayscale(1) brightness(1.5) drop-shadow(0 0 8px rgba(207, 217, 232, .45)); }
 .foil { background: linear-gradient(100deg, #9c742c 0%, #f3dc9c 20%, #c9993f 38%, #f8e7b2 55%, #a87c30 74%, #e9c97f 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent; }
 .ticket { position: relative; width: min(340px, 84vw, calc((100svh - 190px) * .56)); container-type: inline-size; color: #efe6d2; transform: rotate(-1.2deg); transform-origin: 50% 0;
@@ -292,26 +263,27 @@ body.at-booth .hall-floor { opacity: 0; }
   -webkit-mask: radial-gradient(circle 10px at 0 0, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% 0, transparent 98%, #000) right / 51% 100% no-repeat;
   mask: radial-gradient(circle 10px at 0 0, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% 0, transparent 98%, #000) right / 51% 100% no-repeat; }
 .tk-stub::before { content: ""; position: absolute; left: 20px; right: 20px; top: 0; height: 1px; z-index: 1;
-  background: repeating-linear-gradient(90deg, rgba(232, 200, 137, .55) 0 2px, transparent 2px 7px); }
-.tk-frame { position: absolute; inset: 12px 12px 0; border: 1px solid rgba(232, 200, 137, .42); border-bottom: 0; pointer-events: none; z-index: 1; }
-.tk-frame i { position: absolute; top: -5px; width: 9px; height: 9px; transform: rotate(45deg); border: 1px solid rgba(232, 200, 137, .7); background: #0e1932; }
+  background: repeating-linear-gradient(90deg, rgb(var(--ac) / .55) 0 2px, transparent 2px 7px); }
+.tk-frame { position: absolute; inset: 12px 12px 0; border: 1px solid rgb(var(--ac) / .42); border-bottom: 0; pointer-events: none; z-index: 1; }
+.tk-frame i { position: absolute; top: -5px; width: 9px; height: 9px; transform: rotate(45deg); border: 1px solid rgb(var(--ac) / .7); background: #0e1932; }
 .tk-frame i:first-child { left: -5px; } .tk-frame i:last-child { right: -5px; }
 .tk-in { position: relative; z-index: 2; }
 .tk-emblem { display: block; width: 1.9em; height: 2.4em; margin: 0 auto .75em; filter: drop-shadow(0 0 8px rgba(232, 200, 137, .35)); }
 .tk-museum { margin: 0; font-family: var(--f-latin); font-weight: 600; font-size: .7em; letter-spacing: .42em; text-indent: .42em; text-transform: uppercase; }
 .tk-name { margin: .35em 0 0; font-family: var(--f-serif); font-weight: 700; font-size: 1.05em; letter-spacing: .5em; text-indent: .5em; }
+.tk-kicker { margin: 1.5em 0 .9em; font-size: .62em; letter-spacing: .4em; text-indent: .4em; color: rgb(var(--ac) / .8); }
 .tk-numeral { margin: .22em 0 0; font-family: var(--f-latin); font-weight: 600; font-size: 5.4em; line-height: .95; letter-spacing: .06em; filter: drop-shadow(0 0 18px rgba(232, 200, 137, .22)); }
 .tk-zone { margin: .6em 0 0; font-family: var(--f-serif); font-weight: 700; font-size: 1.22em; letter-spacing: .36em; text-indent: .36em; }
 .tk-zone-en { margin: .1em 0 0; font-family: var(--f-latin); font-style: italic; font-size: 1em; letter-spacing: .06em; color: rgba(239, 230, 210, .62); }
-.tk-rule { position: relative; width: 6em; height: 1px; margin: 1.35em auto; background: linear-gradient(90deg, transparent, rgba(232, 200, 137, .85), transparent); }
-.tk-rule::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; transform: translate(-50%, -50%) rotate(45deg); background: var(--gold-soft); }
-.tk-quote { margin: 0; font-family: var(--f-serif); font-weight: 500; font-size: 1.02em; line-height: 1.95; letter-spacing: .1em; text-wrap: balance; }
-.tk-quote-en { margin: .6em 0 0; font-family: var(--f-latin); font-style: italic; font-size: .98em; line-height: 1.45; color: rgba(239, 230, 210, .58); text-wrap: balance; }
-.tk-sign { margin: 1.1em 0 0; font-size: .72em; letter-spacing: .3em; color: rgba(232, 200, 137, .7); }
+.tk-rule { position: relative; width: 6em; height: 1px; margin: 1.35em auto; background: linear-gradient(90deg, transparent, rgb(var(--ac) / .85), transparent); }
+.tk-rule::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; transform: translate(-50%, -50%) rotate(45deg); background: rgb(var(--ac)); }
+.tk-quote { margin: 0; font-family: var(--f-serif); font-weight: 500; font-size: 1.24em; line-height: 1.9; letter-spacing: .1em; text-wrap: balance; color: #f3ecdb; }
+.tk-quote-en { margin: .7em 0 1.5em; font-family: var(--f-latin); font-style: italic; font-size: .98em; line-height: 1.45; color: rgba(239, 230, 210, .58); text-wrap: balance; }
+.tk-sign { margin: .9em 0 0; font-size: .72em; letter-spacing: .3em; color: rgb(var(--ac) / .7); }
 .tk-stub-row { display: flex; justify-content: space-between; align-items: center; }
 .tk-adm { display: grid; font-family: var(--f-serif); font-weight: 500; font-size: .74em; line-height: 1.5; letter-spacing: .32em; color: rgba(239, 230, 210, .78); }
 .tk-adm i { font-family: var(--f-latin); font-style: italic; letter-spacing: .08em; font-size: .84rem; opacity: .7; }
-.tk-date { font-family: var(--f-latin); font-weight: 600; font-size: 1.25em; letter-spacing: .12em; font-variant-numeric: lining-nums; }
+.tk-date { font-family: var(--f-serif); font-weight: 700; font-size: 1.05em; letter-spacing: .1em; }
 .tk-actions { display: grid; justify-items: center; gap: 4px; animation: rise .8s ease .5s both; }
 /* 從出票口遞出來時：先讓票從窗口出來，館內再暗下，按鈕最後出現 */
 .ticket-scene.from-slot { animation: none; }
@@ -345,6 +317,7 @@ body.at-booth .hall-floor { opacity: 0; }
 .pl-floor b { margin-right: .6em; letter-spacing: .06em; }
 .pl-title { margin: 6px 0 0; font-family: var(--f-serif); font-weight: 900; font-size: 1.55rem; letter-spacing: .1em; line-height: 1.35; }
 .pl-en { margin: 2px 0 0; font-family: var(--f-latin); font-style: italic; font-size: 1.08rem; color: var(--paper-muted); }
+.pl-quip { margin: 10px 0 0; padding-left: 12px; border-left: 2px solid rgba(181, 134, 47, .55); font-family: var(--f-serif); font-weight: 500; font-size: .9rem; line-height: 1.7; letter-spacing: .06em; color: #6b5636; }
 .pl-meta { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 2px 22px; margin: 14px 0 0; padding: 10px 0;
   border-top: 1px solid rgba(181, 134, 47, .45); border-bottom: 1px solid rgba(181, 134, 47, .45); }
 .pl-meta div { display: grid; }
@@ -381,3 +354,7 @@ body.at-booth .hall-floor { opacity: 0; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
   .night-words p { opacity: 1; }
 }
+
+/* 進館：票往上收走 */
+.ticket-scene.leaving { opacity: 0; transform: translateY(-14px); transition: opacity .4s ease, transform .4s ease; }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }

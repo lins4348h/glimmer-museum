@@ -1,9 +1,9 @@
 // 微光博物館｜前台
-// 夜間售票口選展區 → 領到今晚的票（可存成圖）→ 前往：吊燈快速熄滅 → 館內
-// 館內兩種看法：夜遊（提著手電筒在長廊走）、全覽（燈全亮，館藏目錄）。
-// 選了哪個展區只在瀏覽器裡用，不記錄、不送出。
+// 點售票窗 → 抽到今晚的一張票根（100 句隨機，可以一直抽、可存成圖）→ 進館：俯視像素地圖
+// 館內三種看法：夜遊（暗，手電筒，展品活過來）、點燈（亮，展品乖乖站好）、全覽（館藏目錄）。
+// 抽到哪一句只在瀏覽器裡用，不記錄、不送出。
 import { objectSVG } from "./objects.js";
-import { createWalk, windowSVG } from "./walk.js";
+import { createMap } from "./map.js";
 
 const D = window.MUSEUM;
 const $ = id => document.getElementById(id);
@@ -14,18 +14,45 @@ const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const narrow = () => innerWidth <= 760;
 
 const FLOOR = Object.fromEntries(D.floors.map(f => [f.id, f]));
-const ZONES = D.admission.zones;
+const LINES = D.admission.lines;
 
-let zone = null, line = null, issuedAt = null;
+let line = null, issuedAt = null, lastIdx = -1;
+
+/* ---------- 拱窗：深窗框、扇形窗格、窗台；moon＝看得到月亮 ---------- */
+function windowSVG(id, moon) {
+  const spokes = [30, 60, 90, 120, 150].map(a => {
+    const r = a * Math.PI / 180;
+    return `M${(50 + 20 * Math.cos(r)).toFixed(2)} ${(50 - 20 * Math.sin(r)).toFixed(2)} L${(50 + 38 * Math.cos(r)).toFixed(2)} ${(50 - 38 * Math.sin(r)).toFixed(2)}`;
+  }).join(" ");
+  return `<svg viewBox="0 0 100 252" aria-hidden="true" focusable="false"><defs>
+    <linearGradient id="wg${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6684b6" stop-opacity=".5"/><stop offset=".55" stop-color="#2d4878" stop-opacity=".42"/><stop offset="1" stop-color="#1a2c50" stop-opacity=".5"/></linearGradient>
+    <linearGradient id="wr${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#060b16"/><stop offset=".5" stop-color="#0f1b33"/><stop offset="1" stop-color="#060b16"/></linearGradient>
+    <radialGradient id="wm${id}"><stop offset="0" stop-color="#f4f7fc" stop-opacity=".85"/><stop offset=".22" stop-color="#cfdcf0" stop-opacity=".3"/><stop offset="1" stop-color="#9fb6da" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ws${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".13"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <clipPath id="wc${id}"><path d="M12 244 V50 A38 38 0 0 1 88 50 V244 Z"/></clipPath></defs>
+    <path d="M0 252 V50 A50 50 0 0 1 100 50 V252 Z" fill="#0a1222"/>
+    <path d="M2.6 252 V50 A47.4 47.4 0 0 1 97.4 50 V252" fill="none" stroke="rgba(212,166,74,.3)" stroke-width=".7"/>
+    <path d="M7 248 V50 A43 43 0 0 1 93 50 V248 Z" fill="url(#wr${id})"/>
+    <g clip-path="url(#wc${id})">
+      <rect width="100" height="252" fill="url(#wg${id})"/>
+      ${moon ? `<circle cx="63" cy="76" r="34" fill="url(#wm${id})"/><circle cx="63" cy="76" r="7.2" fill="#eef2f8"/>` : ""}
+      <path d="M12 0 L64 0 L12 150 Z" fill="url(#ws${id})"/>
+      <path d="M37.3 50 V244 M62.7 50 V244 M12 50 H88 M12 98 H88 M12 146 H88 M12 194 H88 M30 50 A20 20 0 0 1 70 50 ${spokes}" fill="none" stroke="#0a1222" stroke-width="2.2"/>
+    </g>
+    <path d="M12 244 V50 A38 38 0 0 1 88 50 V244" fill="none" stroke="rgba(207,217,232,.18)" stroke-width=".6"/>
+    <path d="M46 .5 L54 .5 L52.4 9 L47.6 9 Z" fill="#c99a45" opacity=".6"/>
+    <rect x="-5" y="244" width="110" height="8" rx="1" fill="#16233f"/><rect x="-5" y="244" width="110" height=".8" fill="rgba(232,200,137,.42)"/>
+  </svg>`;
+}
 
 /* ---------- 大廳：兩側拱窗、吊燈 ---------- */
 function buildHall() {
   $("hall-windows").innerHTML = `<div class="hwin l">${windowSVG("l", false)}<span class="shaft"></span></div><div class="hwin r">${windowSVG("r", true)}<span class="shaft"></span></div>`;
   buildLamps();
 }
-// 吊燈只掛在兩側，不擋館名、不擋樓層牌：位置照樓層牌的寬來算
+// 吊燈只掛在兩側，不擋館名：位置照館名的寬來算
 function buildLamps() {
-  const W = innerWidth, sign = document.querySelector(".wall-sign")?.offsetWidth || 320;
+  const W = innerWidth, sign = Math.max(document.querySelector(".title")?.offsetWidth || 300, 300);
   const lamps = narrow() ? [{ x: W * .1, d: 11 }, { x: W * .9, d: 15 }]
     : [{ o: 70, d: 37 }, ...(W >= 1200 ? [{ o: 150, d: 23 }] : [])].flatMap(l => [{ x: W / 2 - sign / 2 - l.o, d: l.d }, { x: W / 2 + sign / 2 + l.o, d: l.d }]);
   $("lamps").innerHTML = lamps.map(l => `<div class="lamp" style="left:${l.x.toFixed(0)}px;--drop:${l.d}%"><span class="lamp-glow"></span><span class="lamp-cap"></span><span class="lamp-globe"></span></div>`).join("");
@@ -38,36 +65,18 @@ function caseHTML(e) {
   return `<div class="case glow-${esc(e.glow)}"><div class="case-glass"><span class="case-light"></span>${objectSVG(e.object)}</div><div class="case-base"></div></div>`;
 }
 
-/* ---------- 一、夜間售票口 ---------- */
-function zoneInfo(z) {
-  const f = FLOOR[z.floor];
-  return f ? { name: f.name, en: f.en, label: f.label } : { name: z.name || "全館", en: z.en || "All Floors", label: "" };
-}
-function buildZones() {
-  $("zones").innerHTML = ZONES.map(z => {
-    const f = zoneInfo(z);
-    // 像老戲院的場次表：羅馬數字、選項、點線、樓層
-    return `<button class="zone" type="button" data-id="${esc(z.id)}">
-      <span class="zone-no">${esc(z.numeral)}</span><span class="zone-name">${esc(z.choice)}</span><span class="zone-dots" aria-hidden="true"></span>
-      <span class="zone-floor">${esc(f.label || f.name)}${f.label ? `<em> ${esc(f.name)}</em>` : ""}</span></button>`;
-  }).join("");
-  $("zones").querySelectorAll(".zone").forEach((b, i) => { b.style.setProperty("--d", `${.5 + i * .22}s`); b.addEventListener("click", () => issue(b)); });
-  waveZones();
-}
-// 一進來，樓層牌四行由上到下亮一次，告訴訪客「這裡可以點」
-function waveZones() {
-  if (REDUCED) return;
-  const z = $("zones"); z.classList.remove("wave"); void z.offsetWidth; z.classList.add("wave");
-  clearTimeout(waveZones.t); waveZones.t = setTimeout(() => z.classList.remove("wave"), 2600);
+/* ---------- 一、夜間售票口：點窗口就出票 ---------- */
+// 抽一句：跟上一句不一樣
+function drawLine() {
+  let i = Math.floor(Math.random() * LINES.length);
+  if (LINES.length > 1 && i === lastIdx) i = (i + 1 + Math.floor(Math.random() * (LINES.length - 1))) % LINES.length;
+  lastIdx = i; line = LINES[i]; issuedAt = new Date();
 }
 
 let busy = false;
-async function issue(btn) {
+async function issue() {
   if (busy) return; busy = true;
-  zone = ZONES.find(z => z.id === btn.dataset.id);
-  line = zone.lines[Math.floor(Math.random() * zone.lines.length)];
-  issuedAt = new Date();
-  $("zones").querySelectorAll(".zone").forEach(b => b.classList.toggle("on", b === btn));
+  drawLine();
   // 手機上售票窗可能在下面：先滑到看得到出票口，再出票
   const sc = $("booth-scene"), ledge = document.querySelector(".booth-ledge").getBoundingClientRect();
   if (ledge.bottom > innerHeight - 24) {
@@ -86,25 +95,32 @@ async function issue(btn) {
   sc.hidden = true;
   busy = false;
 }
+// 再抽一張：舊票往下收走，新票從上面放下來
+async function again() {
+  if (busy) return; busy = true;
+  const tk = $("ticket");
+  if (!REDUCED) { tk.getAnimations().forEach(a => a.cancel()); await tk.animate([{ transform: "rotate(-1.2deg)", opacity: 1 }, { transform: "translateY(40px) rotate(3deg)", opacity: 0 }], { duration: 320, easing: "ease-in", fill: "forwards" }).finished; }
+  drawLine(); showTicket(false);
+  busy = false;
+}
 
 /* ---------- 二、今晚的票 ---------- */
 // 警衛的話在逗號後換行，讀起來比較順；句子短就不換
 function quoteLines(t) {
   if ([...t].length <= 12) return [t];
-  const i = t.search(/[，；]/);
+  const i = t.search(/[，；。？]/);
   return i > 0 && i < t.length - 2 ? [t.slice(0, i + 1), t.slice(i + 1)] : [t];
 }
 function dateStr(d) { return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`; }
 function fillTicket() {
-  const f = zoneInfo(zone);
-  $("tk-numeral").textContent = zone.numeral;
-  $("tk-zone").textContent = f.name;
-  $("tk-zone-en").textContent = f.label ? `${f.en} · ${f.label}` : f.en;
+  // 感性的句子是月白銀箔、幽默的是暖金燙金
+  const tk = $("ticket");
+  tk.classList.toggle("tone-wry", line.tone === "wry"); tk.classList.toggle("tone-tender", line.tone !== "wry");
+  $("tk-kicker").textContent = line.tone === "wry" ? "今晚的一句・館方碎念" : "今晚的一句";
   $("tk-quote").innerHTML = quoteLines(line.zh).map(esc).join("<br>");
   $("tk-quote-en").textContent = line.en || "";
   $("tk-quote-en").hidden = !line.en;
   $("tk-date").textContent = dateStr(issuedAt);
-  $("tk-go").textContent = f.label ? `前往 ${f.label} ${f.name} →` : "走進館內 →";
 }
 function showTicket(fromSlot = false) {
   fillTicket();
@@ -147,18 +163,21 @@ function wrap(x, text, maxW, byWord) {
   return lines;
 }
 async function ticketImage() {
-  const W = 1080, H = 1920, f = zoneInfo(zone);
+  const W = 1080, H = 1920, wry = line.tone === "wry";
   const SERIF = '"Noto Serif TC", "Songti TC", serif', LATIN = '"Cormorant Garamond", "Times New Roman", serif', SANS = '"Noto Sans TC", sans-serif';
   if (document.fonts) await Promise.all([
-    document.fonts.load(`700 46px ${SERIF}`, "微光博物館" + f.name), document.fonts.load(`500 44px ${SERIF}`, line.zh + "夜間入館券"), document.fonts.load(`700 46px ${SERIF}`, "0123456789."),
-    document.fonts.load(`600 260px ${LATIN}`, zone.numeral + "MUSEUM OF GLIMMERS0123456789."), document.fonts.load(`italic 500 40px ${LATIN}`, (line.en || "") + f.en + "Night Admission"),
-    document.fonts.load(`400 26px ${SANS}`, "夜班警衛 Night Guard")
+    document.fonts.load(`700 46px ${SERIF}`, "微光博物館"), document.fonts.load(`500 54px ${SERIF}`, line.zh + "夜間入館券敬贈"), document.fonts.load(`700 46px ${SERIF}`, "0123456789."),
+    document.fonts.load(`600 30px ${LATIN}`, "MUSEUM OF GLIMMERS"), document.fonts.load(`italic 500 40px ${LATIN}`, (line.en || "") + "Night Admission"),
+    document.fonts.load(`400 26px ${SANS}`, "今晚的一句・館方碎念")
   ]).catch(() => {});
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const x = c.getContext("2d");
   const ls = v => { if ("letterSpacing" in x) x.letterSpacing = v; };
+  // 燙金或月白銀箔，看句子的調性
   const gold = (x0, x1) => { const g = x.createLinearGradient(x0, 0, x1, 0);
-    [[0, "#9c742c"], [.2, "#f3dc9c"], [.38, "#c9993f"], [.55, "#f8e7b2"], [.74, "#a87c30"], [1, "#e9c97f"]].forEach(([o, col]) => g.addColorStop(o, col)); return g; };
+    (wry ? [[0, "#9c742c"], [.2, "#f3dc9c"], [.38, "#c9993f"], [.55, "#f8e7b2"], [.74, "#a87c30"], [1, "#e9c97f"]]
+      : [[0, "#7f8da6"], [.2, "#eef3fa"], [.38, "#a9b6cc"], [.55, "#f6f9fd"], [.74, "#8996ad"], [1, "#d7e0ec"]]).forEach(([o, col]) => g.addColorStop(o, col)); return g; };
+  const AC = wry ? "232,200,137" : "207,217,232";
   // 黑暗的展廳＋一圈暖光
   x.fillStyle = "#04070d"; x.fillRect(0, 0, W, H);
   let g = x.createRadialGradient(W / 2, H * .45, 60, W / 2, H * .45, 860);
@@ -183,18 +202,18 @@ async function ticketImage() {
   g = x.createRadialGradient(tx + tw * .3, ty, 20, tx + tw * .3, ty, 900); g.addColorStop(0, "rgba(80,110,170,.22)"); g.addColorStop(1, "rgba(80,110,170,0)");
   x.fillStyle = g; x.fillRect(tx, ty, tw, th);
   // 底紋：同心圓
-  x.strokeStyle = "rgba(232,200,137,.07)"; x.lineWidth = 1.4;
+  x.strokeStyle = `rgba(${AC},.07)`; x.lineWidth = 1.4;
   for (let gx = tx; gx < tx + tw + 470; gx += 470) for (let gy = ty; gy < ty + th + 470; gy += 470) {
     for (let k = 1; k <= 6; k++) { x.beginPath(); x.arc(gx + 235, gy + 235, 47 * k, 0, Math.PI * 2); x.stroke(); }
     x.beginPath(); x.arc(gx, gy, 113, 0, Math.PI * 2); x.stroke();
   }
   x.restore();
   // 燙金細框＋上方兩個菱形
-  const fi = 28; x.strokeStyle = "rgba(232,200,137,.45)"; x.lineWidth = 2;
+  const fi = 28; x.strokeStyle = `rgba(${AC},.45)`; x.lineWidth = 2;
   x.beginPath(); x.moveTo(tx + fi, stubY - 26); x.lineTo(tx + fi, ty + fi); x.lineTo(tx + tw - fi, ty + fi); x.lineTo(tx + tw - fi, stubY - 26); x.stroke();
-  for (const dx of [tx + fi, tx + tw - fi]) { x.save(); x.translate(dx, ty + fi); x.rotate(Math.PI / 4); x.fillStyle = "#0e1932"; x.fillRect(-10, -10, 20, 20); x.strokeStyle = "rgba(232,200,137,.75)"; x.strokeRect(-10, -10, 20, 20); x.restore(); }
+  for (const dx of [tx + fi, tx + tw - fi]) { x.save(); x.translate(dx, ty + fi); x.rotate(Math.PI / 4); x.fillStyle = "#0e1932"; x.fillRect(-10, -10, 20, 20); x.strokeStyle = `rgba(${AC},.75)`; x.strokeRect(-10, -10, 20, 20); x.restore(); }
   // 撕線
-  x.fillStyle = "rgba(232,200,137,.55)";
+  x.fillStyle = `rgba(${AC},.55)`;
   for (let px = tx + 46; px < tx + tw - 46; px += 16) x.fillRect(px, stubY - 1, 5, 2);
   const cx = W / 2; x.textAlign = "center"; x.textBaseline = "alphabetic";
   // 燈籠館徽
@@ -207,38 +226,37 @@ async function ticketImage() {
   x.restore();
   x.fillStyle = gold(cx - 300, cx + 300); x.font = `600 30px ${LATIN}`; ls("16px"); x.fillText("MUSEUM OF GLIMMERS", cx + 8, ty + 236);
   x.fillStyle = "#efe6d2"; x.font = `700 46px ${SERIF}`; ls("22px"); x.fillText("微光博物館", cx + 11, ty + 302);
-  x.fillStyle = gold(cx - 150, cx + 150); x.font = `600 230px ${LATIN}`; ls("12px"); x.fillText(zone.numeral, cx + 6, ty + 548);
-  x.fillStyle = "#efe6d2"; x.font = `700 54px ${SERIF}`; ls("20px"); x.fillText(f.name, cx + 10, ty + 650);
-  x.fillStyle = "rgba(239,230,210,.62)"; x.font = `italic 500 42px ${LATIN}`; ls("2px"); x.fillText(f.label ? `${f.en} · ${f.label}` : f.en, cx, ty + 708);
-  g = x.createLinearGradient(cx - 110, 0, cx + 110, 0); g.addColorStop(0, "rgba(232,200,137,0)"); g.addColorStop(.5, "rgba(232,200,137,.9)"); g.addColorStop(1, "rgba(232,200,137,0)");
-  x.fillStyle = g; x.fillRect(cx - 110, ty + 770, 220, 2);
-  x.save(); x.translate(cx, ty + 771); x.rotate(Math.PI / 4); x.fillStyle = "#e8c889"; x.fillRect(-7, -7, 14, 14); x.restore();
-  // 警衛的話：中文照逗號換行（太長再折），英文照單字折；整段在剩下的空間裡置中
-  x.font = `500 44px ${SERIF}`; ls("5px");
-  const zl = quoteLines(line.zh).flatMap(l => wrap(x, l, tw - 170));
+  const rule = y0 => { const g2 = x.createLinearGradient(cx - 110, 0, cx + 110, 0); g2.addColorStop(0, `rgba(${AC},0)`); g2.addColorStop(.5, `rgba(${AC},.9)`); g2.addColorStop(1, `rgba(${AC},0)`);
+    x.fillStyle = g2; x.fillRect(cx - 110, y0, 220, 2); x.save(); x.translate(cx, y0 + 1); x.rotate(Math.PI / 4); x.fillStyle = `rgb(${AC})`; x.fillRect(-7, -7, 14, 14); x.restore(); };
+  rule(ty + 372);
+  x.fillStyle = `rgba(${AC},.8)`; x.font = `400 26px ${SANS}`; ls("12px"); x.fillText(wry ? "今晚的一句・館方碎念" : "今晚的一句", cx + 6, ty + 460);
+  // 那句話：中文照標點換行（太長再折），英文照單字折；整段放在兩條線中間
+  x.font = `500 54px ${SERIF}`; ls("6px");
+  const zl = quoteLines(line.zh).flatMap(l => wrap(x, l, tw - 150));
   x.font = `italic 500 40px ${LATIN}`; ls("0px");
   const el = line.en ? wrap(x, line.en, tw - 170, true) : [];
-  const blockH = zl.length * 82 + (el.length ? 16 + el.length * 54 : 0) + 76;
-  let y = ty + 830 + Math.max(0, (stubY - 60 - (ty + 830) - blockH) / 2) + 44;
-  x.fillStyle = "#efe6d2"; x.font = `500 44px ${SERIF}`; ls("5px");
-  for (const l of zl) { x.fillText(l, cx + 2, y); y += 82; }
-  if (el.length) { y += 4; x.fillStyle = "rgba(239,230,210,.58)"; x.font = `italic 500 40px ${LATIN}`; ls("0px");
+  const top = ty + 500, bottom = stubY - 210, blockH = zl.length * 96 + (el.length ? 30 + el.length * 54 : 0);
+  let y = top + Math.max(0, (bottom - top - blockH) / 2) + 60;
+  x.fillStyle = "#f3ecdb"; x.font = `500 54px ${SERIF}`; ls("6px");
+  for (const l of zl) { x.fillText(l, cx + 3, y); y += 96; }
+  if (el.length) { y += 10; x.fillStyle = "rgba(239,230,210,.6)"; x.font = `italic 500 40px ${LATIN}`; ls("0px");
     for (const l of el) { x.fillText(l, cx, y); y += 54; } }
-  x.fillStyle = "rgba(232,200,137,.72)"; x.font = `400 26px ${SANS}`; ls("12px"); x.fillText("夜班警衛　Night Guard", cx + 6, y + 30);
+  rule(stubY - 170);
+  x.fillStyle = `rgba(${AC},.72)`; x.font = `400 26px ${SANS}`; ls("12px"); x.fillText("微光博物館　敬贈", cx + 6, stubY - 100);
   // 存根
   x.textAlign = "left"; x.fillStyle = "rgba(239,230,210,.8)"; x.font = `500 32px ${SERIF}`; ls("12px"); x.fillText("夜間入館券", tx + 70, stubY + 88);
   x.fillStyle = "rgba(239,230,210,.55)"; x.font = `italic 500 34px ${LATIN}`; ls("2px"); x.fillText("Night Admission", tx + 70, stubY + 134);
   // 日期用襯線中文字型的數字（等高），英文字型的數字高低不一
   x.textAlign = "right"; x.fillStyle = gold(tx + tw - 330, tx + tw - 70); x.font = `700 46px ${SERIF}`; ls("4px"); x.fillText(dateStr(issuedAt), tx + tw - 66, stubY + 116);
   x.restore();
-  x.textAlign = "center"; x.fillStyle = "rgba(232,200,137,.8)"; x.font = `600 28px ${LATIN}`; ls("10px"); x.fillText("MUSEUM OF GLIMMERS", cx, 1760);
+  x.textAlign = "center"; x.fillStyle = `rgba(${AC},.8)`; x.font = `600 28px ${LATIN}`; ls("10px"); x.fillText("MUSEUM OF GLIMMERS", cx, 1760);
   x.fillStyle = "rgba(236,229,212,.55)"; x.font = `500 26px ${SERIF}`; ls("10px"); x.fillText("引路人文創園區", cx, 1806);
   return new Promise(res => c.toBlob(res, "image/png"));
 }
 async function saveTicket() {
   const btn = $("tk-save"), old = btn.textContent; btn.textContent = "製作中……"; btn.disabled = true;
   try {
-    const blob = await ticketImage(), name = `微光博物館-${zoneInfo(zone).name}-${dateStr(issuedAt).replaceAll(".", "")}.png`;
+    const blob = await ticketImage(), name = `微光博物館-今晚的票根-${dateStr(issuedAt).replaceAll(".", "")}.png`;
     const file = new File([blob], name, { type: "image/png" });
     if (navigator.canShare?.({ files: [file] }) && matchMedia("(pointer: coarse)").matches) await navigator.share({ files: [file] }).catch(() => {});
     else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast("票根已存下"); }
@@ -247,64 +265,53 @@ async function saveTicket() {
 }
 
 
-/* ---------- 三、熄燈：進館前的儀式，節奏要快（約 1 秒） ---------- */
-async function lightsOut() {
-  const lamps = [...document.querySelectorAll(".lamp")];
-  if (!REDUCED) {
-    // 由外往內一盞一盞熄
-    const order = lamps.map((l, i) => [l, Math.abs(parseFloat(l.style.left) - innerWidth / 2)]).sort((a, b) => b[1] - a[1]).map(a => a[0]);
-    for (const l of order) { l.classList.add("flick"); await wait(80); l.classList.add("off"); await wait(110); }
-  }
-  setLamps(false);
-  document.body.classList.add("is-dark"); document.body.classList.remove("is-lit");
-}
+/* ---------- 二之一、進館：票收起來，直接進地圖 ---------- */
 async function enter() {
   if (busy) return; busy = true;
-  $("ticket-scene").hidden = true;
-  await lightsOut();
-  const n = $("night-scene"); n.hidden = false; n.classList.remove("play"); void n.offsetWidth; n.classList.add("play");
-  await wait(REDUCED ? 600 : 2500);
-  n.hidden = true;
-  openInside("walk", zone?.floor || D.floors[0].id);
+  const t = $("ticket-scene");
+  if (!REDUCED) { t.classList.add("leaving"); await wait(420); }
+  t.hidden = true; t.classList.remove("leaving");
+  setLamps(false);
+  openInside("night");
   busy = false;
 }
 
-/* ---------- 四、館內：夜遊／全覽 ---------- */
+/* ---------- 三、館內：夜遊／點燈／全覽 ---------- */
 let mode = null;
-const walk = createWalk($("walk"), {
+const map = createMap($("map"), {
   floors: D.floors, exhibits: D.exhibits.filter(e => e.onDisplay), reduced: REDUCED,
-  guardLine: floorId => {
-    const f = FLOOR[floorId], z = ZONES.find(z => z.floor === floorId);
-    const pool = f?.guard?.length ? f.guard : z?.lines?.length ? z.lines : [{ zh: "慢慢看，閉館前都還有時間。", en: "Take your time. We're open till dawn." }];
+  guardLine: () => {
+    const pool = D.guard?.length ? D.guard : [{ zh: "慢慢逛，天亮前都還有時間。", en: "Take your time. We're open till dawn." }];
     return pool[Math.floor(Math.random() * pool.length)];
   },
   openPlacard: (e, from) => openPlacard(e, from),
-  blocked: () => !$("placard").hidden,
+  blocked: () => !$("placard").hidden || mode === "catalog",
   exit: () => resetToBooth()
 });
 
-function openInside(m, floorId) {
+function openInside(m) {
   document.body.classList.remove("at-booth");
   document.body.classList.add("in-inside");
   $("inside-scene").hidden = false;
   mode = null;
-  setMode(m, floorId, true);
+  setMode(m, true);
 }
-async function setMode(m, floorId, first = false) {
+async function setMode(m, first = false) {
   if (m === mode) return;
-  const veil = $("in-veil");
-  if (!first && !REDUCED) { veil.classList.add("on"); await wait(320); }
+  const veil = $("in-veil"), was = mode;
+  if (!first && !REDUCED) { veil.classList.add("on"); await wait(300); }
   mode = m;
   const sw = $("mode-switch"); sw.dataset.mode = m;
   sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
-  if (m === "walk") {
-    $("catalog").hidden = true; $("walk").hidden = false;
-    document.body.classList.add("is-dark"); document.body.classList.remove("is-lit");
-    if (first || !walk.floor) walk.start(floorId || walk.floor || D.floors[0].id); else walk.resume();
-  } else {
-    walk.pause(); $("walk").hidden = true;
-    document.body.classList.remove("is-dark"); document.body.classList.add("is-lit");
+  document.body.classList.toggle("is-dark", m === "night"); document.body.classList.toggle("is-lit", m !== "night");
+  if (m === "catalog") {
+    map.pause(); $("map").hidden = true;
     renderCatalog(); $("catalog").hidden = false; $("catalog").scrollTop = 0;
+  } else {
+    $("catalog").hidden = true; $("map").hidden = false;
+    if (first || !was) map.start(m === "night");
+    else if (was === "catalog") { map.setNight(m === "night"); map.resume(); }
+    else map.setNight(m === "night");
   }
   veil.classList.remove("on");
 }
@@ -317,10 +324,9 @@ function renderCatalog() {
   const floors = D.floors.map(f => {
     const items = D.exhibits.filter(e => e.floor === f.id && e.onDisplay);
     if (!items.length) return "";
-    const mine = zone?.floor === f.id;
     return `<section class="cat-floor" data-floor="${esc(f.id)}">
-      <header class="cf-head"><span class="cf-label">${esc(f.label)}</span>
-        <div class="cf-name"><h3>${esc(f.name)}${mine ? '<em class="cf-mine">你的票</em>' : ""}</h3><i>${esc(f.en)}</i></div>
+      <header class="cf-head"><span class="cf-label">${esc(f.numeral || f.label)}</span>
+        <div class="cf-name"><h3>${esc(f.name)}</h3><i>${esc(f.label)}・${esc(f.en)}</i></div>
         <p class="cf-blurb">${esc(f.blurb || "")}</p></header>
       <div class="cat-grid">${items.map(e => `<button class="cat-item${e.status === "renovating" ? " renovating" : ""}" type="button" data-id="${esc(e.id)}" data-kind="${esc(e.kind)}">
         <span class="ci-case">${caseHTML(e)}${e.status === "renovating" ? '<span class="cloth"></span><span class="sign">整修中</span>' : ""}</span>
@@ -356,10 +362,13 @@ function openPlacard(e, from) {
   const pc = $("pl-case");
   pc.className = "pl-case" + (reno ? " renovating" : "");
   pc.innerHTML = caseHTML(e) + (reno ? '<span class="cloth"></span><span class="sign">整修中</span>' : "");
-  $("pl-floor").innerHTML = `<b>${esc(f.label || "")}</b>${esc(f.name || "")}`;
+  $("pl-floor").innerHTML = `<b>${esc(f.numeral || "")}</b>${esc(f.label || "")}・${esc(f.name || "")}`;
   $("pl-title").textContent = e.title;
   $("pl-en").textContent = e.en;
-  $("pl-meta").innerHTML = [["類型", e.kind || "—"], ["年代", e.version || "—"], ["樓層", f.label || "—"]]
+  // 展品的自白：它被你抓到時說的那句
+  $("pl-quip").textContent = e.persona?.quip ? `「${e.persona.quip}」` : "";
+  $("pl-quip").hidden = !e.persona?.quip;
+  $("pl-meta").innerHTML = [["類型", e.kind || "—"], ["年代", e.version || "—"], ["展廳", f.label || "—"]]
     .map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
   $("pl-note").textContent = e.note;
   $("pl-tags").innerHTML = e.tags.map(t => `<li>${esc(t)}</li>`).join("");
@@ -374,16 +383,14 @@ function closePlacard() { $("placard").hidden = true; lastFocus?.focus?.({ preve
 
 /* ---------- 回到售票口 ---------- */
 function resetToBooth() {
-  ["night-scene", "ticket-scene", "inside-scene"].forEach(id => $(id).hidden = true);
-  walk.stop(); mode = null;
+  ["ticket-scene", "inside-scene"].forEach(id => $(id).hidden = true);
+  map.stop(); mode = null;
   document.body.classList.remove("is-dark", "in-inside"); document.body.classList.add("is-lit", "at-booth");
   setLamps(true);
   document.querySelectorAll(".lamp").forEach(l => l.classList.remove("flick"));
   $("booth").classList.remove("issuing");
-  $("zones").querySelectorAll(".zone").forEach(b => b.classList.remove("on"));
   const bs = $("booth-scene"); bs.hidden = false; bs.classList.remove("leaving"); bs.scrollTop = 0;
-  zone = null; busy = false;
-  waveZones();
+  busy = false;
 }
 
 function toast(msg) {
@@ -397,10 +404,11 @@ function footHTML() {
 
 /* ---------- 開始 ---------- */
 $("site-foot").innerHTML = footHTML();
-buildZones(); buildHall();
+buildHall();
+$("booth").addEventListener("click", issue);
 $("tk-go").addEventListener("click", enter);
 $("tk-save").addEventListener("click", saveTicket);
-$("tk-again").addEventListener("click", resetToBooth);
+$("tk-again").addEventListener("click", again);
 $("hud-back").addEventListener("click", resetToBooth);
 $("mode-switch").addEventListener("click", ev => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
 $("skip").addEventListener("click", () => { $("booth-scene").hidden = true; setLamps(true); openInside("catalog"); });

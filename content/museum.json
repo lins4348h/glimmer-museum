@@ -2,56 +2,35 @@
   "floors": [
     {
       "id": "f1",
-      "label": "1F",
+      "label": "遊戲廳",
       "name": "夜間互動區",
       "en": "After Dark",
       "blurb": "熄燈之後，這幾件展品會自己動起來。",
-      "alive": true,
-      "guard": [
-        {
-          "zh": "這層的展品，被光照到會自己動。",
-          "en": "The pieces on this floor move when the light finds them."
-        }
-      ]
+      "numeral": "I"
     },
     {
       "id": "f2",
-      "label": "2F",
+      "label": "理財廳",
       "name": "薪水與時間",
       "en": "Salary & Time",
       "blurb": "每個月的數字，和三十年後的自己。",
-      "guard": [
-        {
-          "zh": "這裡的數字都很安靜，慢慢算。",
-          "en": "The numbers here are quiet. Take your time."
-        }
-      ]
+      "numeral": "II"
     },
     {
       "id": "f3",
-      "label": "3F",
+      "label": "測驗廳",
       "name": "照見自己",
       "en": "Know Thyself",
       "blurb": "放下老師的身分，看看鏡子裡的人。",
-      "guard": [
-        {
-          "zh": "這層很適合一個人來。",
-          "en": "This floor is best visited alone."
-        }
-      ]
+      "numeral": "III"
     },
     {
       "id": "shop",
-      "label": "出口",
+      "label": "商店",
       "name": "博物館商店",
       "en": "Museum Shop",
       "blurb": "離開前，帶一點小小的快樂回家。",
-      "guard": [
-        {
-          "zh": "出口在走廊盡頭，記得帶點快樂回家。",
-          "en": "The exit is at the end. Take a little joy home."
-        }
-      ]
+      "numeral": "✦"
     }
   ],
   "exhibits": [
@@ -77,7 +56,11 @@
           "label": "開始遊戲",
           "url": "https://teacher-work-line.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "hop",
+        "quip": "我沒有響，是你的錯覺。（震）"
+      }
     },
     {
       "id": "e02",
@@ -101,7 +84,11 @@
           "label": "開始遊戲",
           "url": "https://campus-simulation-game.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "hop",
+        "quip": "我只是去走廊透透氣，不是要離職。"
+      }
     },
     {
       "id": "e03",
@@ -124,7 +111,11 @@
           "label": "開始遊戲",
           "url": "https://teachergame.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "scuttle",
+        "quip": "我在寫一個關於你的故事，先別偷看。"
+      }
     },
     {
       "id": "e04",
@@ -147,7 +138,11 @@
           "label": "開始試算",
           "url": "https://teacher-salary-calculator.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "slide",
+        "quip": "我很長，但每一行都算得清清楚楚。"
+      }
     },
     {
       "id": "e05",
@@ -171,7 +166,11 @@
           "label": "開始試算",
           "url": "https://pension-calculation.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "roll",
+        "quip": "別催我，我滾得比你的退休日還準時。"
+      }
     },
     {
       "id": "e06",
@@ -194,7 +193,11 @@
           "label": "開始試算",
           "url": "https://toolfinance.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "waddle",
+        "quip": "我沒有在跑，我在存體力。"
+      }
     },
     {
       "id": "e07",
@@ -217,7 +220,11 @@
           "label": "開始體檢",
           "url": "https://grand-clafoutis-b1948b.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "spin",
+        "quip": "錢跟沙一樣，翻過來才知道還剩多少。"
+      }
     },
     {
       "id": "e08",
@@ -240,7 +247,11 @@
           "label": "開始盤點",
           "url": "https://celadon-starship-b44b3c.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "tilt",
+        "quip": "我也一直在找平衡，跟你一樣。"
+      }
     },
     {
       "id": "e09",
@@ -263,7 +274,11 @@
           "label": "開始測驗",
           "url": "https://teacher-personality-quiz.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "float",
+        "quip": "我有很多張臉，你今天想看哪一張？"
+      }
     },
     {
       "id": "e10",
@@ -286,7 +301,11 @@
           "label": "閱讀報告",
           "url": "https://teacher-test-analysis.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "float",
+        "quip": "我只是靠近一點看你，不是在打分數。"
+      }
     },
     {
       "id": "e11",
@@ -310,7 +329,11 @@
           "label": "開始測驗",
           "url": "https://teacher-career-exploration.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "roll",
+        "quip": "我轉了好幾圈，終於知道北邊在哪。"
+      }
     },
     {
       "id": "e12",
@@ -326,7 +349,11 @@
       "glow": "mist",
       "note": "幫自己做一次整理，看看你這週到底扛了多少。我們每天都很忙，卻很少有人真的算過，那些忙碌加起來是多少。",
       "tags": [],
-      "links": []
+      "links": [],
+      "persona": {
+        "move": "none",
+        "quip": "噓，整修中。它在補眠。"
+      }
     },
     {
       "id": "e13",
@@ -349,61 +376,537 @@
           "label": "抽一杯",
           "url": "https://drink-picker.netlify.app/"
         }
-      ]
+      ],
+      "persona": {
+        "move": "wobble",
+        "quip": "半糖少冰，是我最誠實的一面。"
+      }
     }
   ],
   "admission": {
-    "zones": [
+    "lines": [
       {
-        "id": "f1",
-        "floor": "f1",
-        "numeral": "I",
-        "choice": "想玩一下",
-        "lines": [
-          {
-            "zh": "今晚不用當誰的榜樣，好好玩就好。",
-            "en": "Tonight, you don't have to be anyone's role model. Just play."
-          }
-        ]
+        "zh": "今天說了很多話，現在換你聽聽自己。",
+        "en": "You spoke all day. Now listen to yourself.",
+        "tone": "tender"
       },
       {
-        "id": "f2",
-        "floor": "f2",
-        "numeral": "II",
-        "choice": "想算清楚",
-        "lines": [
-          {
-            "zh": "數字會說話，但怎麼過日子，由你決定。",
-            "en": "Numbers speak. How you live is yours to decide."
-          }
-        ]
+        "zh": "你記得每個學生的名字，也記得一下自己的。",
+        "en": "You remember every student's name. Remember yours, too.",
+        "tone": "tender"
       },
       {
-        "id": "f3",
-        "floor": "f3",
-        "numeral": "III",
-        "choice": "想認識自己",
-        "lines": [
-          {
-            "zh": "放下講台上的你，看看鏡子裡的人。",
-            "en": "Step off the podium. Meet the person in the mirror."
-          }
-        ]
+        "zh": "下班的路上，不用再當誰的答案。",
+        "en": "On the way home, you don't have to be anyone's answer.",
+        "tone": "tender"
       },
       {
-        "id": "all",
-        "floor": "",
-        "numeral": "✦",
-        "choice": "隨便逛逛",
-        "name": "全館",
-        "en": "All Floors",
-        "lines": [
-          {
-            "zh": "沒有目的地的晚上，最適合迷路。",
-            "en": "A night with no destination is perfect for getting lost."
-          }
-        ]
+        "zh": "有些努力沒有掌聲，但它真的發生過。",
+        "en": "Some efforts get no applause, but they truly happened.",
+        "tone": "tender"
+      },
+      {
+        "zh": "粉筆灰會落下，你也可以。",
+        "en": "Chalk dust settles. You can, too.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你點亮過的人，有些還沒說謝謝。",
+        "en": "Some of the people you lit up haven't said thank you yet.",
+        "tone": "tender"
+      },
+      {
+        "zh": "沒做完的會等你；今晚的你，只在現在。",
+        "en": "What's unfinished will wait. Tonight's you is only here, now.",
+        "tone": "tender"
+      },
+      {
+        "zh": "累，不是不夠好，是你真的用力過。",
+        "en": "Tired doesn't mean not good enough. It means you tried hard.",
+        "tone": "tender"
+      },
+      {
+        "zh": "把今天放下，它不會跑掉。",
+        "en": "Put today down. It won't run away.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你不必每天都發光，月亮也有缺的時候。",
+        "en": "You don't have to shine every day. Even the moon wanes.",
+        "tone": "tender"
+      },
+      {
+        "zh": "慢一點走，博物館不會趕你。",
+        "en": "Walk slowly. The museum won't hurry you.",
+        "tone": "tender"
+      },
+      {
+        "zh": "教室的燈關了，你心裡的可以還亮著。",
+        "en": "The classroom lights are off. The one inside you can stay on.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你帶過的每一屆，都帶走了一點你。",
+        "en": "Every class you taught carried a little of you away.",
+        "tone": "tender"
+      },
+      {
+        "zh": "也留一點給自己，這不是自私。",
+        "en": "Keep a little for yourself. That isn't selfish.",
+        "tone": "tender"
+      },
+      {
+        "zh": "不是每一天都要有進度，有些日子是用來喘氣的。",
+        "en": "Not every day needs progress. Some days are for breathing.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你說「沒關係」的次數夠多了，今晚換別人對你說。",
+        "en": "You've said \"it's okay\" enough times. Tonight, let someone say it to you.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你接住了很多人；誰來接住你？先從你自己開始。",
+        "en": "You've caught so many. Who catches you? Start with you.",
+        "tone": "tender"
+      },
+      {
+        "zh": "被誤解的時候，你可以溫柔，但不必一直解釋。",
+        "en": "When misunderstood, you can stay gentle without explaining forever.",
+        "tone": "tender"
+      },
+      {
+        "zh": "有個學生長大以後，會在某個晚上想起你。",
+        "en": "Someday, a grown-up student will think of you on a night like this.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你種下的，不一定看得到開花；但它在長。",
+        "en": "You may never see it bloom, but it is growing.",
+        "tone": "tender"
+      },
+      {
+        "zh": "今晚，你只是一個來看展的人。",
+        "en": "Tonight, you are simply someone visiting a museum.",
+        "tone": "tender"
+      },
+      {
+        "zh": "把肩膀放下來，講台已經在很遠的地方了。",
+        "en": "Let your shoulders drop. The podium is far away now.",
+        "tone": "tender"
+      },
+      {
+        "zh": "好好吃一頓飯，也是一件重要的事。",
+        "en": "A proper meal is an important thing, too.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你可以不完美地，愛這份工作。",
+        "en": "You are allowed to love this work imperfectly.",
+        "tone": "tender"
+      },
+      {
+        "zh": "說不出口的委屈，也算數。",
+        "en": "The hurt you couldn't say out loud still counts.",
+        "tone": "tender"
+      },
+      {
+        "zh": "有些日子，撐住就是最好的成績。",
+        "en": "Some days, holding on is the best grade there is.",
+        "tone": "tender"
+      },
+      {
+        "zh": "改作業到半夜的，不只你一個。",
+        "en": "You're not the only one grading at midnight.",
+        "tone": "tender"
+      },
+      {
+        "zh": "下課鐘響的時候，願你的心也跟著下課。",
+        "en": "When the bell rings, may your heart take a break, too.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你給出去的耐心，世界會用別的方式還你。",
+        "en": "The patience you give away comes back in other forms.",
+        "tone": "tender"
+      },
+      {
+        "zh": "今天有一件小事做得很好，你知道是哪一件。",
+        "en": "One small thing went well today. You know which one.",
+        "tone": "tender"
+      },
+      {
+        "zh": "每一聲「老師好」，都是你走過的痕跡。",
+        "en": "Every \"Good morning, teacher\" is a trace of the road you've walked.",
+        "tone": "tender"
+      },
+      {
+        "zh": "先照顧好自己，光才有地方來。",
+        "en": "Take care of yourself first. That is where the light comes from.",
+        "tone": "tender"
+      },
+      {
+        "zh": "想哭就哭，眼淚不扣分。",
+        "en": "Cry if you need to. Tears don't cost you points.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你的善良不是理所當然，它很珍貴。",
+        "en": "Your kindness is not a given. It is precious.",
+        "tone": "tender"
+      },
+      {
+        "zh": "那個難帶的孩子，也許正在悄悄改變。",
+        "en": "That difficult child may be changing, quietly.",
+        "tone": "tender"
+      },
+      {
+        "zh": "不必被每個人喜歡，被幾個人記得就很好。",
+        "en": "You needn't be liked by everyone. Remembered by a few is plenty.",
+        "tone": "tender"
+      },
+      {
+        "zh": "夜很長，夠你把自己找回來。",
+        "en": "The night is long enough to find yourself again.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你是老師，也是一個需要被鼓勵的人。",
+        "en": "You are a teacher, and also someone who needs encouragement.",
+        "tone": "tender"
+      },
+      {
+        "zh": "有些門，要等學生長大才會打開。",
+        "en": "Some doors only open when the students grow up.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你教的不只是課本，還有怎麼當一個人。",
+        "en": "You teach more than textbooks. You teach how to be a person.",
+        "tone": "tender"
+      },
+      {
+        "zh": "今晚不評分，也不被評分。",
+        "en": "Tonight, no grading, and no being graded.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你也曾經是坐在台下的孩子。",
+        "en": "You were once a child in the audience, too.",
+        "tone": "tender"
+      },
+      {
+        "zh": "把今天的自己，好好地送回家。",
+        "en": "Bring today's you safely home.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你不是燃燒自己的蠟燭，你是會充電的燈。",
+        "en": "You're not a candle burning down. You're a lamp that recharges.",
+        "tone": "tender"
+      },
+      {
+        "zh": "疲憊的時候，記得你為什麼開始。",
+        "en": "When you're weary, remember why you began.",
+        "tone": "tender"
+      },
+      {
+        "zh": "有人因為你，比較不害怕上學了。",
+        "en": "Someone is less afraid of school because of you.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你的溫柔，有人正在偷偷學。",
+        "en": "Someone is quietly learning your gentleness.",
+        "tone": "tender"
+      },
+      {
+        "zh": "這一行很辛苦，你也真的很了不起。",
+        "en": "This work is hard, and you are truly remarkable.",
+        "tone": "tender"
+      },
+      {
+        "zh": "心裡的教室，偶爾也要開窗通風。",
+        "en": "The classroom in your heart needs fresh air sometimes.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你今天的耐心，可能是某個孩子一整天唯一的溫暖。",
+        "en": "Your patience today may have been a child's only warmth.",
+        "tone": "tender"
+      },
+      {
+        "zh": "沒有人規定老師不能軟弱。",
+        "en": "No rule says teachers can't be fragile.",
+        "tone": "tender"
+      },
+      {
+        "zh": "先原諒今天的自己，明天會輕一點。",
+        "en": "Forgive today's you, and tomorrow gets a little lighter.",
+        "tone": "tender"
+      },
+      {
+        "zh": "走得慢，也是在前進。",
+        "en": "Walking slowly is still moving forward.",
+        "tone": "tender"
+      },
+      {
+        "zh": "那些沒被看見的付出，這裡看見了。",
+        "en": "The effort no one saw is seen here.",
+        "tone": "tender"
+      },
+      {
+        "zh": "留一盞燈給自己，就夠了。",
+        "en": "One lamp left on for yourself is enough.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你的價值，不只寫在成績單上。",
+        "en": "Your worth isn't only written on a report card.",
+        "tone": "tender"
+      },
+      {
+        "zh": "晚安不是結束，是讓心休息的開始。",
+        "en": "Good night isn't an ending. It's where rest begins.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你曾經是某個人的轉捩點。",
+        "en": "You have been someone's turning point.",
+        "tone": "tender"
+      },
+      {
+        "zh": "走進來吧，這裡沒有人需要你負責。",
+        "en": "Come in. No one here needs you to be in charge.",
+        "tone": "tender"
+      },
+      {
+        "zh": "生活不只是學期，還有很多個夏天。",
+        "en": "Life isn't only semesters. There are many summers, too.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你可以對工作盡責，也可以對自己溫柔。",
+        "en": "You can be dutiful at work and gentle with yourself.",
+        "tone": "tender"
+      },
+      {
+        "zh": "有些話，學生要很多年後才聽懂。",
+        "en": "Some words, students only understand years later.",
+        "tone": "tender"
+      },
+      {
+        "zh": "今天辛苦了。這句話，你值得聽一百次。",
+        "en": "Thank you for today. You deserve to hear it a hundred times.",
+        "tone": "tender"
+      },
+      {
+        "zh": "把心裡的作業簿闔上，今晚不用交。",
+        "en": "Close the notebook in your heart. Nothing is due tonight.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你不必燦爛，微光也能照路。",
+        "en": "You needn't blaze. A glimmer can light the way.",
+        "tone": "tender"
+      },
+      {
+        "zh": "這世界一直在變好，因為有人願意教。",
+        "en": "The world keeps getting better because someone is willing to teach.",
+        "tone": "tender"
+      },
+      {
+        "zh": "窗外的月亮，也替你看顧了一整天。",
+        "en": "The moon outside has kept watch over you all day.",
+        "tone": "tender"
+      },
+      {
+        "zh": "聲音啞了，是你很用心的證據。",
+        "en": "A hoarse voice is proof of how much you cared.",
+        "tone": "tender"
+      },
+      {
+        "zh": "你不用把每個人都帶到終點，陪一段路就很好。",
+        "en": "You needn't carry everyone to the finish. Walking part of the way is enough.",
+        "tone": "tender"
+      },
+      {
+        "zh": "歡迎回來，做你自己。",
+        "en": "Welcome back to being yourself.",
+        "tone": "tender"
+      },
+      {
+        "zh": "今晚沒有家長群組，請安心入館。",
+        "en": "No parent group chats tonight. Enter in peace.",
+        "tone": "wry"
+      },
+      {
+        "zh": "本館禁止批改作業，違者沒收紅筆。",
+        "en": "Grading is prohibited. Violators surrender their red pens.",
+        "tone": "wry"
+      },
+      {
+        "zh": "據說存錢筒小豬今晚又偷跑出去了。",
+        "en": "Rumor has it the piggy bank escaped again tonight.",
+        "tone": "wry"
+      },
+      {
+        "zh": "已成功下班。系統偵測：靈魂還在載入中。",
+        "en": "Clocked out successfully. Soul still loading.",
+        "tone": "wry"
+      },
+      {
+        "zh": "本票不含任何行政業務，請放心使用。",
+        "en": "This ticket includes zero admin work. Use freely.",
+        "tone": "wry"
+      },
+      {
+        "zh": "明天的課，交給明天的你，那個人很可靠。",
+        "en": "Leave tomorrow's lesson to tomorrow's you. They're reliable.",
+        "tone": "wry"
+      },
+      {
+        "zh": "恐龍骨架說，牠也想放寒假。",
+        "en": "The dinosaur says it would like a winter break, too.",
+        "tone": "wry"
+      },
+      {
+        "zh": "今晚點名，只點你一個。",
+        "en": "Tonight's roll call has one name on it: yours.",
+        "tone": "wry"
+      },
+      {
+        "zh": "已讀不回，在本館是一種美德。",
+        "en": "Leaving messages on read is a virtue in this museum.",
+        "tone": "wry"
+      },
+      {
+        "zh": "警衛說：再晚，也沒有人會叫你寫會議紀錄。",
+        "en": "The guard says no one will ask you for meeting minutes, however late it gets.",
+        "tone": "wry"
+      },
+      {
+        "zh": "你今天的咖啡因額度，已經用完了。",
+        "en": "Your caffeine allowance for today has been used up.",
+        "tone": "wry"
+      },
+      {
+        "zh": "本館展品不會問你「這題會考嗎」。",
+        "en": "No exhibit here will ask, \"Will this be on the test?\"",
+        "tone": "wry"
+      },
+      {
+        "zh": "恭喜抽中：一整晚不用說「安靜」。",
+        "en": "You've won a whole night without saying \"Quiet, please.\"",
+        "tone": "wry"
+      },
+      {
+        "zh": "請勿觸摸展品，可以觸摸自己的心。好啦，太肉麻，當我沒說。",
+        "en": "Don't touch the exhibits; touch your heart. Okay, too cheesy. Forget it.",
+        "tone": "wry"
+      },
+      {
+        "zh": "今天的你：上課 A、開會 B、回訊息 C，活下來 A+。",
+        "en": "Today: teaching A, meetings B, replies C, staying alive A+.",
+        "tone": "wry"
+      },
+      {
+        "zh": "館裡的時鐘都很懶，不會催你。",
+        "en": "The clocks in here are lazy. They won't rush you.",
+        "tone": "wry"
+      },
+      {
+        "zh": "本票可兌換：一次不帶罪惡感的耍廢。",
+        "en": "Redeemable for one guilt-free lazy evening.",
+        "tone": "wry"
+      },
+      {
+        "zh": "據統計，老師說「最後一次」，平均要說十二次。",
+        "en": "Statistically, a teacher's \"last time\" is said twelve times.",
+        "tone": "wry"
+      },
+      {
+        "zh": "今晚沒有段考，只有你的期中自評：還好嗎？",
+        "en": "No exams tonight, just your own midterm check: are you okay?",
+        "tone": "wry"
+      },
+      {
+        "zh": "手機震了？那是展品，不是家長。",
+        "en": "Phone buzzing? That's an exhibit, not a parent.",
+        "tone": "wry"
+      },
+      {
+        "zh": "警衛提醒：館內請勿備課。",
+        "en": "A reminder from the guard: no lesson planning in the museum.",
+        "tone": "wry"
+      },
+      {
+        "zh": "你的耐心帳戶已經存滿，可以提領一點給自己。",
+        "en": "Your patience account is full. Withdraw some for yourself.",
+        "tone": "wry"
+      },
+      {
+        "zh": "這裡的展品也會躲主管，你不孤單。",
+        "en": "Even the exhibits here hide from the boss. You're not alone.",
+        "tone": "wry"
+      },
+      {
+        "zh": "下班後的你，戰鬥力比上班時高三成。",
+        "en": "After-hours you is thirty percent stronger.",
+        "tone": "wry"
+      },
+      {
+        "zh": "本館沒有聯絡簿，只有一個通往快樂的出口。",
+        "en": "No communication books here, only an exit toward joy.",
+        "tone": "wry"
+      },
+      {
+        "zh": "檢查完畢：今天的你，不需要再改進了。",
+        "en": "Inspection complete: today's you needs no further improvement.",
+        "tone": "wry"
+      },
+      {
+        "zh": "恐龍說，牠當年也是被叫上台的那一個。",
+        "en": "The dinosaur says it was the one called to the front of the class, too.",
+        "tone": "wry"
+      },
+      {
+        "zh": "如果看到打字機在跑，請假裝沒看到。",
+        "en": "If you see the typewriter running, please pretend you didn't.",
+        "tone": "wry"
+      },
+      {
+        "zh": "今晚的作業：什麼都不做。繳交期限：永遠。",
+        "en": "Tonight's homework: nothing. Due date: never.",
+        "tone": "wry"
+      },
+      {
+        "zh": "你的「好，我來處理」，今天先下班了。",
+        "en": "Your \"Sure, I'll handle it\" has clocked out for the day.",
+        "tone": "wry"
       }
     ]
-  }
+  },
+  "guard": [
+    {
+      "zh": "恐龍不咬人，牠只是想被看見。",
+      "en": "The dinosaur doesn't bite. It just wants to be seen."
+    },
+    {
+      "zh": "展品會亂跑。你一靠近，它們就乖乖站好。",
+      "en": "The exhibits wander. Get close and they'll stand still."
+    },
+    {
+      "zh": "出口在商店後面，回家前帶一點快樂走。",
+      "en": "The exit is past the shop. Take a little joy home."
+    },
+    {
+      "zh": "慢慢逛，天亮前都還有時間。",
+      "en": "Take your time. We're open till dawn."
+    },
+    {
+      "zh": "畫像的眼睛會跟著你，別怕，它們只是好奇。",
+      "en": "The portraits' eyes follow you. Don't worry, they're just curious."
+    }
+  ]
 }
