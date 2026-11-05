@@ -3,7 +3,7 @@
 // 夜遊：館內暗，手電筒照路，展品活過來到處亂逛；你一靠近，它就跑回展櫃裝死，這時才能看說明牌。
 // 開館（白天）：陽光從窗戶進來，有遊客在逛，展品乖乖待在展櫃裡。
 // 先畫一張 1:1 的小畫布（一格 16 像素），再用最近鄰放大到螢幕：放大倍率取「整數個螢幕實體像素」，像素才會銳利。
-import { TEACHER, GUARD, STATUE, DINO, ITEMS, PLANT, EASEL, sprite, flipped, visitor, scale2x } from "./pixels.js";
+import { TEACHER, GUARD, STATUE, DINO, ITEMS, PLANT, EASEL, sprite, flipped, visitor } from "./pixels.js";
 
 const T = 16;                 // 一格的像素
 const MW = 46, MH = 34;       // 地圖大小（格）
@@ -198,17 +198,21 @@ function paintPainting(x, p) {
     px(3, 3, iw, ih, "#2a2238"); px(3 + Math.floor(iw / 2) - 1, 3 + Math.floor(ih / 2) - 1, 3, 3, "#f3d895"); px(3, 3 + ih - 2, iw, 2, "#3b2f4c");
   }
 }
-// 雙格展櫃：深色底座、玻璃罩裡是空的（展品另外畫）、前面一條紅龍柱繩、一張小展牌
+// 展櫃：細長的台座＋小玻璃罩（展品原尺寸放在裡面，跟人的比例相稱），前面一條紅龍柱繩
+// 佔兩格寬，是為了展櫃之間留走道和掛窗的空間
 function paintVitrine(x, X, Y) {
   const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(X + a, Y + b, w, h); };
-  px(4, 26, 26, 3, "rgba(0,0,0,.35)");
-  px(3, -20, 26, 32, "rgba(8,14,28,.55)");
-  px(2, 12, 28, 15, "#0a1020"); px(3, 12, 26, 4, "#2f4775"); px(3, 15, 26, 1, "#d4a64a");
-  px(3, 16, 26, 10, "#1b2a4a"); px(5, 18, 22, 6, "#16243f"); px(5, 18, 22, 1, "rgba(232,200,137,.2)");
-  px(12, 19, 8, 4, "#efe6d2"); px(13, 20, 6, 1, "#8f8062"); px(13, 22, 4, 1, "#8f8062");
+  px(8, 27, 18, 2, "rgba(0,0,0,.35)");
+  // 玻璃罩裡面（空的時候看得出是空的）
+  px(7, -8, 18, 19, "rgba(8,14,28,.55)");
+  // 台座：頂板、柱身（左亮右暗）、小展牌、底座
+  px(6, 11, 20, 3, "#0a1020"); px(7, 11, 18, 2, "#2f4775"); px(7, 13, 18, 1, "#d4a64a");
+  px(9, 14, 14, 11, "#1b2a4a"); px(9, 14, 1, 11, "#2c3f68"); px(22, 14, 1, 11, "#111c33");
+  px(12, 17, 8, 4, "#efe6d2"); px(13, 18, 6, 1, "#8f8062"); px(13, 19, 4, 1, "#8f8062");
+  px(7, 25, 18, 2, "#0a1020"); px(8, 25, 16, 1, "#2a3c63");
   // 紅龍柱（深墨藍絲絨繩）
-  px(0, 22, 2, 10, "#b38a3b"); px(30, 22, 2, 10, "#b38a3b"); px(0, 21, 2, 1, "#f3d895"); px(30, 21, 2, 1, "#f3d895"); px(-1, 31, 4, 1, "#8a6420"); px(29, 31, 4, 1, "#8a6420");
-  for (let i = 2; i < 30; i++) { const sag = Math.round(Math.sin((i - 2) / 27 * Math.PI) * 3); px(i, 24 + sag, 1, 2, "#2f3f73"); px(i, 24 + sag, 1, 1, "#4d6390"); }
+  for (const sx of [1, 29]) { px(sx, 20, 2, 9, "#b38a3b"); px(sx, 19, 2, 1, "#f3d895"); px(sx - 1, 28, 4, 1, "#8a6420"); }
+  for (let i = 3; i < 29; i++) { const sag = Math.round(Math.sin((i - 3) / 25 * Math.PI) * 2); px(i, 22 + sag, 1, 1, "#4d6390"); px(i, 23 + sag, 1, 1, "#2f3f73"); }
 }
 function paintRunner(x) {
   // 大廳：從南門到台座的長地毯
@@ -330,7 +334,7 @@ export function createMap(root, opt) {
   const MOVES = { hop: 46, roll: 54, waddle: 38, float: 30, scuttle: 50, spin: 34, tilt: 30, slide: 36, wobble: 32, none: 0 };
   const items = slots.map(s => {
     const r = ROOMS[s.w];
-    const home = { x: (s.tx + 1) * T, y: s.ty * T + 12 };
+    const home = { x: (s.tx + 1) * T, y: s.ty * T + 11 };
     const move = s.e.status === "renovating" ? "none" : (s.e.persona?.move || "hop");
     return { ...s, home, x: home.x, y: home.y, state: "home", move, speed: MOVES[move] || 40, t: rnd(0, 6), wait: rnd(1.5, 5), vx: 0, quipShown: false,
       look: { x: (s.tx + 1) * T, y: (s.ty + 2) * T + 8 },  // 站在展櫃前這一點附近就能看說明牌
@@ -602,7 +606,7 @@ export function createMap(root, opt) {
     // 可以互動的東西頭上一個小金箭頭
     if (near) {
       const bob = reduced ? 0 : Math.round(Math.sin(ts * 5) * 1.5);
-      const ax = near.kind === "item" ? near.it.home.x : EXIT_AT.x, ay = near.kind === "item" ? near.it.ty * T - 28 : EXIT.y * T + 4;
+      const ax = near.kind === "item" ? near.it.home.x : EXIT_AT.x, ay = near.kind === "item" ? near.it.ty * T - 16 : EXIT.y * T + 4;
       drawArrow(ax - cx, ay - cy + bob);
     }
     if (night) lightPass(cx, cy, ts); else litPass(cx, cy);
@@ -617,38 +621,38 @@ export function createMap(root, opt) {
     fx.fillStyle = "#f3d895"; fx.fillRect(X - 3, Y - 4, 7, 3); fx.fillRect(X - 2, Y - 1, 5, 1); fx.fillRect(X - 1, Y, 3, 1); fx.fillRect(X, Y + 1, 1, 1);
   }
   function drawItem(it, ts, cx, cy) {
-    const rows = ITEMS[it.e.object] || ITEMS.lantern;
-    const img = sprite(scale2x(rows), "it2" + it.e.object);      // 放大兩倍，邊緣用 Scale2x 修圓
-    let X = it.x - 16 - cx, Y = it.y - 32 - cy, flip = it.vx < -.1;
+    // 展品用原尺寸（16 像素），跟人、牆、展櫃同一個像素密度
+    const img = sprite(ITEMS[it.e.object] || ITEMS.lantern, "it" + it.e.object);
+    let X = it.x - 8 - cx, Y = it.y - 16 - cy, flip = it.vx < -.1;
     if (it.state !== "home" && !reduced) {
       const ph = it.t;
-      if (it.move === "hop") Y -= Math.round(Math.abs(Math.sin(ph * 9)) * 6);
+      if (it.move === "hop") Y -= Math.round(Math.abs(Math.sin(ph * 9)) * 4);
       else if (it.move === "waddle") { flip = Math.floor(ph * 6) % 2 ? !flip : flip; Y -= Math.floor(ph * 6) % 2; }
-      else if (it.move === "float") Y -= Math.round(3 + Math.sin(ph * 3) * 3);
+      else if (it.move === "float") Y -= Math.round(2 + Math.sin(ph * 3) * 2);
       else if (it.move === "scuttle") Y -= Math.floor(ph * 16) % 2;
       else if (it.move === "tilt" || it.move === "wobble") X += Math.floor(ph * 5) % 2 ? 1 : -1;
       else if (it.move === "slide") Y -= Math.floor(ph * 4) % 2;
-      shadow(it.x - cx, it.y - cy, 12);
+      shadow(it.x - cx, it.y - cy, 10);
       if (it.move === "roll" || it.move === "spin") {
         // 滾動：九十度一格一格轉，像素才不會糊
         const q = it.move === "roll" ? Math.floor(ph * 10) % 4 : (Math.floor(ph * 3) % 2) * 2;
-        fx.save(); fx.translate(Math.round(X) + 16, Math.round(Y) + 16); fx.rotate(q * Math.PI / 2); fx.drawImage(img, -16, -16); fx.restore();
+        fx.save(); fx.translate(Math.round(X) + 8, Math.round(Y) + 8); fx.rotate(q * Math.PI / 2); fx.drawImage(img, -8, -8); fx.restore();
         return;
       }
     }
     blit(img, X, Y, flip);
   }
-  // 展櫃的玻璃罩：邊框、斜斜的反光、頂上的黃銅蓋和小燈；整修中蓋一塊布
+  // 玻璃罩：細邊框、斜斜的反光、黃銅頂蓋和小頂飾；整修中罩一塊布
   function drawGlass(X, Y, it) {
     const f = (a, b, w, h, c) => { fx.fillStyle = c; fx.fillRect(X + a, Y + b, w, h); };
     if (it.e.status === "renovating") {
-      f(4, -18, 24, 30, "#5e4428"); for (let i = 0; i < 24; i += 4) f(4 + i, -18, 2, 30, "#7a5c35");
-      f(4, -18, 24, 2, "#4a3520"); f(10, -2, 12, 6, "#efe6d2"); f(11, 0, 10, 1, "#8f8062");
+      f(7, -8, 18, 19, "#5e4428"); for (let i = 0; i < 18; i += 3) f(7 + i, -8, 1, 19, "#7a5c35");
+      f(7, -8, 18, 1, "#4a3520");
     }
-    f(3, -20, 26, 32, "rgba(207,226,245,.07)");
-    f(3, -20, 1, 32, "rgba(223,231,242,.5)"); f(28, -20, 1, 32, "rgba(223,231,242,.35)"); f(3, 11, 26, 1, "rgba(223,231,242,.3)");
-    for (let i = 0; i < 14; i++) f(7 + i, -14 + i * 2, 1, 2, "rgba(255,255,255,.1)");
-    f(2, -23, 28, 3, "#b38a3b"); f(2, -23, 28, 1, "#f3d895"); f(14, -25, 4, 2, "#8a6420");
+    f(7, -8, 18, 19, "rgba(207,226,245,.07)");
+    f(7, -8, 1, 19, "rgba(223,231,242,.5)"); f(24, -8, 1, 19, "rgba(223,231,242,.3)");
+    for (let i = 0; i < 7; i++) f(10 + i, -6 + i * 2, 1, 2, "rgba(255,255,255,.12)");
+    f(6, -10, 20, 2, "#b38a3b"); f(6, -10, 20, 1, "#f3d895"); f(15, -12, 2, 2, "#d4a64a");
   }
   function shadow(X, Y, w = 10) {
     fx.fillStyle = "rgba(0,0,0,.28)"; fx.fillRect(Math.round(X) - w / 2, Math.round(Y) - 1, w, 2); fx.fillRect(Math.round(X) - w / 2 + 2, Math.round(Y) + 1, w - 4, 1);
@@ -708,7 +712,7 @@ export function createMap(root, opt) {
     }
     // 台座上的小燈：展品在家時亮一點
     // 展櫃頂上的小燈：展品在家時亮一點
-    for (const it of items) glow(it.home.x - cx, it.ty * T - 4 - cy, it.state === "home" ? 30 : 18, it.state === "home" ? .62 : .35, 1.2);
+    for (const it of items) glow(it.home.x - cx, it.ty * T + 4 - cy, it.state === "home" ? 24 : 15, it.state === "home" ? .62 : .35, 1.2);
     for (const pt of PORTRAITS) glow(pt.x * T - cx, ROOMS.hall.y * T + 14 - cy, 16, .45);
     for (const s of signs) glow(s.x - cx, s.y - cy, 18, .35, .6);
     glow(EXIT_AT.x - cx, EXIT.y * T + 12 - cy, 26, .6, .8);
@@ -746,7 +750,7 @@ export function createMap(root, opt) {
       let X, Y;
       if (b.who === "guard") { X = GUARD_AT.x; Y = GUARD_AT.y - 26; }
       else if (b.who === "dino") { X = dino.x; Y = dino.y - 30; }
-      else { const it = items.find(i => "item" + i.e.id === b.who); X = it.x; Y = it.y - 38; }
+      else { const it = items.find(i => "item" + i.e.id === b.who); X = it.x; Y = it.y - 26; }
       at(b.el, X, Y);
     }
   }
