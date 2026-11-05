@@ -3,6 +3,7 @@
 引路人文創園區的第四座館（另外三座：心的畫廊、光的溫室、總舖師的灶腳）。展出老師「台下的人生」：理財試算器、測驗、遊戲。
 使用者是資源班老師，網站給老師和一般大眾看。蓋法沿用心的畫廊（`lins4348h/SEL-heart-gallery`）：GitHub＋Cloudflare Workers＋`/admin/` 後台。
 
+- 正式網址：https://glimmer-museum.lins4348h-12a.workers.dev
 - 推上 GitHub `main` 後，Cloudflare Workers 自動建置（`npm run build`）並發布 `dist/`（要使用者在 Cloudflare 建好 Worker 才會有）。
 - 做法、資料格式、部署設定見 `README.md`；整體企劃與規格在 `lins4348h/AI-Course` 的 `園區企劃.md`、`微光博物館規格.md`。
 

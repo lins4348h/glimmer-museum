@@ -33,7 +33,7 @@
 1. Cloudflare → Workers & Pages → Create → Import a repository → 選 `glimmer-museum`。
 2. 專案名稱 `glimmer-museum`（要跟 `wrangler.jsonc` 的 name 一樣）。
 3. Build command `npm run build`；Deploy command `npx wrangler deploy`；Production branch `main`。
-4. 網址會是 https://glimmer-museum.lins4348h.workers.dev
+4. 正式網址：https://glimmer-museum.lins4348h-12a.workers.dev
 
 ## 本機預覽
 
