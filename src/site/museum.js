@@ -281,8 +281,8 @@ const map = createMap($("map"), {
     return pool[Math.floor(Math.random() * pool.length)];
   },
   openPlacard: (e, from) => openPlacard(e, from),
-  blocked: () => !$("placard").hidden || mode === "catalog",
-  exit: () => resetToBooth()
+  blocked: () => !$("placard").hidden || !$("leave").hidden || mode === "catalog",
+  exit: () => askLeave()
 });
 
 function openInside(m) {
@@ -377,6 +377,10 @@ function openPlacard(e, from) {
 }
 function closePlacard() { $("placard").hidden = true; lastFocus?.focus?.({ preventScroll: true }); }
 
+/* ---------- 出口：先問一下，免得不小心離開 ---------- */
+function askLeave() { $("leave").hidden = false; $("leave-no").focus(); }
+function closeLeave() { $("leave").hidden = true; }
+
 /* ---------- 回到售票口 ---------- */
 function resetToBooth() {
   ["ticket-scene", "inside-scene"].forEach(id => $(id).hidden = true);
@@ -409,6 +413,10 @@ $("hud-back").addEventListener("click", resetToBooth);
 $("mode-switch").addEventListener("click", ev => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
 $("skip").addEventListener("click", () => { $("booth-scene").hidden = true; setLamps(true); openInside("catalog"); });
 $("pl-close").addEventListener("click", closePlacard);
+$("pl-done").addEventListener("click", closePlacard);
+$("leave-yes").addEventListener("click", () => { closeLeave(); resetToBooth(); });
+$("leave-no").addEventListener("click", closeLeave);
+$("leave").addEventListener("click", e => { if (e.target === $("leave")) closeLeave(); });
 $("placard").addEventListener("click", e => { if (e.target === $("placard")) closePlacard(); });
-addEventListener("keydown", e => { if (e.key === "Escape" && !$("placard").hidden) closePlacard(); });
+addEventListener("keydown", e => { if (e.key !== "Escape") return; if (!$("placard").hidden) closePlacard(); else if (!$("leave").hidden) closeLeave(); });
 let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(buildLamps, 200); });

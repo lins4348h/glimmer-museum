@@ -132,8 +132,22 @@
       <ul class="pl-tags" id="pl-tags"></ul>
       <div class="pl-links" id="pl-links"></div>
       <p class="pl-disclaimer" id="pl-disclaimer" hidden>個人研究參考，不構成投資建議。</p>
+      <button class="link-btn pl-done" id="pl-done" type="button">收起說明牌</button>
     </div>
   </article>
+</div>
+
+<!-- 要離開博物館嗎？（走到出口按下去才出現） -->
+<div class="leave-veil" id="leave" hidden>
+  <div class="leave-card" role="dialog" aria-modal="true" aria-labelledby="leave-title">
+    <p class="leave-kicker">Exit</p>
+    <p class="leave-title" id="leave-title">要離開博物館嗎？</p>
+    <p class="leave-note">今晚的票根會留在你身上。</p>
+    <div class="leave-btns">
+      <button class="btn" id="leave-yes" type="button">回售票口</button>
+      <button class="link-btn" id="leave-no" type="button">再逛一下</button>
+    </div>
+  </div>
 </div>
 
 <p class="toast" id="toast" role="status" hidden></p>

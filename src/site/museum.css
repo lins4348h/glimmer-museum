@@ -346,6 +346,8 @@ body.at-booth .booth-frame { animation: glass-breathe 3.2s ease-in-out infinite;
   .lobby-floor { height: max(15svh, 118px); }
   .skip { position: absolute; top: 26px; right: auto; left: 50%; transform: translateX(-50%); white-space: nowrap; }
   .site-foot .foot-name, .site-foot .foot-name + .dot { display: none; }
+  /* iPhone Safari 的網址列、工具列是浮在畫面上的：上下多留空間，叉叉才不會被蓋住 */
+  .placard-veil { padding: calc(76px + env(safe-area-inset-top, 0px)) 12px calc(96px + env(safe-area-inset-bottom, 0px)); }
   .pl-case { padding: 16px 16px 0; }
   .pl-case .case { width: min(150px, 46%); }
   .pl-label { padding: 22px 20px 22px; }
@@ -359,3 +361,18 @@ body.at-booth .booth-frame { animation: glass-breathe 3.2s ease-in-out infinite;
 /* 進館：票往上收走 */
 .ticket-scene.leaving { opacity: 0; transform: translateY(-14px); transition: opacity .4s ease, transform .4s ease; }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+
+/* 說明牌最下面的「收起說明牌」：捲到底一定按得到 */
+.pl-done { display: block; width: 100%; margin-top: 16px; border-top: 1px solid rgba(181, 134, 47, .3); color: var(--paper-muted); font-size: .86rem; letter-spacing: .2em; }
+.pl-done:hover { color: var(--paper-ink); }
+.pl-close { width: 48px; height: 48px; }
+
+/* 要離開博物館嗎？ */
+.leave-veil { position: fixed; inset: 0; z-index: 32; display: grid; place-items: center; padding: 16px; background: rgba(2, 5, 11, .7); animation: fade-in .25s ease both; }
+.leave-card { width: min(320px, 100%); padding: 22px 22px 14px; border-radius: 4px; text-align: center;
+  background: linear-gradient(180deg, #16233e, #0d172c);
+  box-shadow: 0 0 0 1px rgba(232, 200, 137, .55), 0 0 0 5px #0a1222, 0 0 0 6px rgba(232, 200, 137, .26), 0 30px 60px -20px rgba(0, 0, 0, .9); animation: rise .35s ease both; }
+.leave-kicker { margin: 0; font-family: var(--f-latin); font-style: italic; color: var(--gold-soft); opacity: .8; letter-spacing: .12em; }
+.leave-title { margin: 2px 0 0; font-family: var(--f-serif); font-weight: 700; font-size: 1.15rem; letter-spacing: .2em; text-indent: .2em; color: #f3e7c9; }
+.leave-note { margin: 6px 0 16px; font-size: .84rem; letter-spacing: .1em; color: var(--muted); }
+.leave-btns { display: grid; justify-items: center; gap: 2px; }

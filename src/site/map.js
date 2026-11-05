@@ -12,7 +12,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 /* ---------- 平面圖：房間（含上方兩排牆面）與通道 ---------- */
-// 展廳的順序對應 museum.json 的 floors：第 1 個在西、第 2 個在北、第 3 個在東、第 4 個在南（商店＋出口）
+// 展廳的順序對應 museum.json 的 floors：第 1 個在西、第 2 個在北、第 3 個在東、第 4 個在南（商店）
 const ROOMS = {
   hall: { x: 24, y: 16, w: 18, h: 16, floor: "marble" },
   west: { x: 3, y: 17, w: 17, h: 14, floor: "carpet" },
@@ -27,7 +27,9 @@ const DOORS = {
   east: { x: 42, y: 24, w: 4, h: 3, sign: [44.1, 22.9] },
   south: { x: 31, y: 32, w: 4, h: 5, sign: [33, 35.6] }
 };
-const EXIT = { x: 32, y: 43, w: 2 };            // 商店南牆的出口
+// 出口：大廳北牆左邊一扇門（跟進館的位置相反，要特地走過去；使用者說不能放在最下面，有人一進來就往下走）
+const EXIT = { x: 25, y: 16, w: 2 };
+const EXIT_AT = { x: 26 * T, y: 18 * T + 8 };   // 站在門前這一點附近就能按
 const PLATFORM = { cx: 33, cy: 24.6 };          // 恐龍台座（大廳正中央）
 const SPAWN = { x: 33 * T, y: 30 * T + 8 };
 
@@ -38,7 +40,6 @@ function buildGrid() {
     for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) g[y][x] = y < r.y + 2 ? 2 : 1;
   for (const d of Object.values(DOORS))
     for (let y = d.y; y < d.y + d.h; y++) for (let x = d.x; x < d.x + d.w; x++) g[y][x] = 1;
-  for (let x = EXIT.x; x < EXIT.x + EXIT.w; x++) g[EXIT.y][x] = 3; // 出口門檻（走不出去）
   return g;
 }
 const roomAt = (tx, ty) => Object.entries(ROOMS).find(([, r]) => tx >= r.x && tx < r.x + r.w && ty >= r.y + 2 && ty < r.y + r.h)?.[0] || null;
@@ -63,10 +64,6 @@ function paintMap(grid, slots, wins) {
       if (!solid(tx, ty - 1)) x.fillRect(X, Y, T, 1);
       if (!solid(tx + 1, ty)) x.fillRect(X + T - 1, Y, 1, T);
       if (!solid(tx - 1, ty)) x.fillRect(X, Y, 1, T);
-      continue;
-    }
-    if (v === 3) { // 出口門檻：門外是夜色
-      px(X, Y, T, T, "#0d1a30"); px(X, Y, T, 2, "#2a3c63"); px(X + 2, Y + 4, T - 4, T - 4, "#0a1426");
       continue;
     }
     const room = roomAt(tx, ty) || (v === 2 ? Object.keys(ROOMS).find(k => { const r = ROOMS[k]; return tx >= r.x && tx < r.x + r.w && ty >= r.y && ty < r.y + 2; }) : null);
@@ -98,6 +95,14 @@ function paintMap(grid, slots, wins) {
   x.fillStyle = "#1c2b4c"; x.beginPath(); x.ellipse(cx, cy - 2, 42, 18, 0, 0, Math.PI * 2); x.fill();
   x.strokeStyle = "rgba(212,166,74,.55)"; x.lineWidth = 1; x.beginPath(); x.ellipse(cx, cy - 2, 42, 18, 0, 0, Math.PI * 2); x.stroke();
   px(cx - 6, cy + 14, 12, 3, "#d4a64a");
+  // 出口的門：畫在大廳北牆上，門前一塊踏墊
+  { const X = EXIT.x * T, Y = EXIT.y * T;
+    px(X + 1, Y + 2, 30, 30, "#0a1020"); px(X + 2, Y + 3, 28, 1, "#d4a64a");
+    px(X + 3, Y + 5, 12, 27, "#1a2c50"); px(X + 17, Y + 5, 12, 27, "#1a2c50");
+    px(X + 5, Y + 7, 8, 6, "#9fb2cf"); px(X + 19, Y + 7, 8, 6, "#9fb2cf"); px(X + 9, Y + 7, 1, 6, "#1a2c50"); px(X + 23, Y + 7, 1, 6, "#1a2c50");
+    x.strokeStyle = "rgba(232,200,137,.25)"; x.lineWidth = 1; x.strokeRect(X + 5.5, Y + 16.5, 7, 12); x.strokeRect(X + 19.5, Y + 16.5, 7, 12);
+    px(X + 13, Y + 18, 1, 5, "#e8c889"); px(X + 18, Y + 18, 1, 5, "#e8c889"); px(X + 15, Y + 5, 2, 27, "#0a1020");
+    px(X + 4, Y + 32, 24, 6, "#2a3c63"); px(X + 4, Y + 32, 24, 1, "rgba(232,200,137,.6)"); }
   // 長椅
   for (const b of BENCHES) paintBench(x, b.x * T, b.y * T);
   // 黃銅立燈（夜裡也亮著一點）
@@ -164,7 +169,7 @@ function paintBench(x, X, Y) {
   px(3, 11, 2, 4, "#8a6420"); px(27, 11, 2, 4, "#8a6420");
 }
 const BENCHES = [{ x: 26, y: 28 }, { x: 38, y: 28 }];
-const LAMPS = [{ x: 25, y: 18.4 }, { x: 41, y: 18.4 }, { x: 25, y: 30.4 }, { x: 41, y: 30.4 }];
+const LAMPS = [{ x: 29.2, y: 18.4 }, { x: 41, y: 18.4 }, { x: 25, y: 30.4 }, { x: 41, y: 30.4 }];
 const STATUES = [{ x: 25.5, y: 20 }, { x: 40.5, y: 20 }];
 const PORTRAITS = [{ x: 27.5 }, { x: 38.5 }];
 const GUARD_AT = { x: 29.5 * T, y: 30 * T + 10 };
@@ -296,7 +301,7 @@ export function createMap(root, opt) {
     return { el, x: d.sign[0] * T, y: d.sign[1] * T };
   });
   const exitSign = document.createElement("span"); exitSign.className = "m-sign m-exit"; exitSign.innerHTML = "出口<i>EXIT</i>";
-  layer.appendChild(exitSign); signs.push({ el: exitSign, x: (EXIT.x + 1) * T, y: EXIT.y * T + 2 });
+  layer.appendChild(exitSign); signs.push({ el: exitSign, x: (EXIT.x + 1) * T, y: EXIT.y * T - 6 });
   const plat = document.createElement("span"); plat.className = "m-sign m-plat"; plat.textContent = "鎮館之寶";
   layer.appendChild(plat); signs.push({ el: plat, x: PLATFORM.cx * T, y: PLATFORM.cy * T + 26 });
   const bubbles = [];
@@ -442,7 +447,7 @@ export function createMap(root, opt) {
       const d = Math.hypot(p.x - it.home.x, p.y - (it.home.y + 16));
       if (d < bd) { bd = d; best = { kind: "item", it }; }
     }
-    const ex = Math.hypot(p.x - (EXIT.x + 1) * T, p.y - EXIT.y * T);
+    const ex = Math.hypot(p.x - EXIT_AT.x, p.y - EXIT_AT.y);
     if (ex < 28) best = { kind: "exit" };
     const key = best ? (best.kind === "item" ? best.it.e.id : "exit") : "";
     if (key === nearest.key) return;
@@ -495,7 +500,7 @@ export function createMap(root, opt) {
     // 可以互動的東西頭上一個小金箭頭
     if (near) {
       const bob = reduced ? 0 : Math.round(Math.sin(ts * 5) * 1.5);
-      const ax = near.kind === "item" ? near.it.home.x : (EXIT.x + 1) * T, ay = near.kind === "item" ? near.it.home.y - 22 : EXIT.y * T - 6;
+      const ax = near.kind === "item" ? near.it.home.x : EXIT_AT.x, ay = near.kind === "item" ? near.it.home.y - 22 : EXIT.y * T + 4;
       drawArrow(ax - cx, ay - cy + bob);
     }
     if (night) lightPass(cx, cy, ts); else litPass(cx, cy);
@@ -581,7 +586,7 @@ export function createMap(root, opt) {
     for (const it of items) glow(it.home.x - cx, it.home.y - 6 - cy, it.state === "home" ? 20 : 12, it.state === "home" ? .55 : .3);
     for (const pt of PORTRAITS) glow(pt.x * T - cx, ROOMS.hall.y * T + 14 - cy, 16, .45);
     for (const s of signs) glow(s.x - cx, s.y - cy, 18, .35, .6);
-    glow((EXIT.x + 1) * T - cx, EXIT.y * T - cy, 26, .6, .7);
+    glow(EXIT_AT.x - cx, EXIT.y * T + 12 - cy, 26, .6, .8);
     for (const l of LAMPS) glow(l.x * T - cx, l.y * T - 4 - cy, 30, .55, .8);
     // 自己身邊一圈＋手電筒光錐（三層疊出柔邊）
     const hx = p.x - cx, hy = p.y - 12 - cy;
