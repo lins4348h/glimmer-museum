@@ -372,8 +372,8 @@ function openPlacard(e, from) {
     ? '<span class="btn is-off" aria-disabled="true">整修中，陸續開放</span>'
     : e.links.map(l => `<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join("");
   $("pl-disclaimer").hidden = e.floor !== "f2";
-  $("placard").hidden = false;
-  $("pl-close").focus();
+  $("placard").hidden = false; $("placard").scrollTop = 0;
+  $("pl-close").focus({ preventScroll: true });
 }
 function closePlacard() { $("placard").hidden = true; lastFocus?.focus?.({ preventScroll: true }); }
 
