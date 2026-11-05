@@ -106,10 +106,16 @@ async function again() {
 
 /* ---------- 二、今晚的票 ---------- */
 // 警衛的話在逗號後換行，讀起來比較順；句子短就不換
-function quoteLines(t) {
-  if ([...t].length <= 12) return [t];
-  const i = t.search(/[，；。？]/);
-  return i > 0 && i < t.length - 2 ? [t.slice(0, i + 1), t.slice(i + 1)] : [t];
+// 斷行：只在標點後斷（逗號、分號、句號、問號、冒號），一段一段裝進行裡，詞不會被拆開
+// fits(字串) 回答放不放得下；網頁上用字數、存圖時用實際寬度
+function quoteLines(t, fits = l => [...l].length <= 13) {
+  const segs = t.match(/[^，；。？！：]+[，；。？！：」』]*/g) || [t], out = [];
+  let cur = "";
+  for (const sg of segs) { if (cur && !fits(cur + sg)) { out.push(cur); cur = sg; } else cur += sg; }
+  if (cur) out.push(cur);
+  // 最後一行只剩一兩個字時，跟上一行合併再平分
+  if (out.length > 1 && [...out[out.length - 1]].length <= 2) out[out.length - 2] += out.pop();
+  return out;
 }
 function dateStr(d) { return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`; }
 function fillTicket() {
@@ -148,7 +154,7 @@ function showTicket(fromSlot = false) {
   $("tk-go").focus({ preventScroll: true });
 }
 
-// 存成圖片（只有票本身，1170×2160），手機可以直接分享到相簿或限動
+// 存成直式圖片（1080×1920，整張就是票），手機可以直接分享到相簿或限動
 function wrap(x, text, maxW, byWord) {
   // 平均分行：先算要幾行，再用平均寬度折，避免最後一行只剩一個字
   const total = x.measureText(text).width, n = Math.max(1, Math.ceil(total / maxW));
@@ -163,89 +169,76 @@ function wrap(x, text, maxW, byWord) {
   return lines;
 }
 async function ticketImage() {
-  // 只存票本身：畫布就是票的大小，票以外透明；放大 1.5 倍，存下來比較清楚
-  const W = 780, H = 1440, SC = 1.5, wry = line.tone === "wry";
+  // 整張就是票：1080×1920 滿版深墨藍厚卡，沒有透明邊、沒有破洞，存進相簿就是一張完整的圖（比照心的畫廊的書籤）
+  const W = 1080, H = 1920, wry = line.tone === "wry";
   const SERIF = '"Noto Serif TC", "Songti TC", serif', LATIN = '"Cormorant Garamond", "Times New Roman", serif', SANS = '"Noto Sans TC", sans-serif';
   if (document.fonts) await Promise.all([
-    document.fonts.load(`700 46px ${SERIF}`, "微光博物館"), document.fonts.load(`500 54px ${SERIF}`, line.zh + "夜間入館券敬贈"), document.fonts.load(`700 46px ${SERIF}`, "0123456789."),
-    document.fonts.load(`600 30px ${LATIN}`, "MUSEUM OF GLIMMERS"), document.fonts.load(`italic 500 40px ${LATIN}`, (line.en || "") + "Night Admission"),
-    document.fonts.load(`400 26px ${SANS}`, "今晚的一句・館方碎念")
+    document.fonts.load(`700 56px ${SERIF}`, "微光博物館夜間入館券引路人教育園區"), document.fonts.load(`500 72px ${SERIF}`, line.zh), document.fonts.load(`700 52px ${SERIF}`, "0123456789."),
+    document.fonts.load(`600 34px ${LATIN}`, "MUSEUM OF GLIMMERS"), document.fonts.load(`italic 500 46px ${LATIN}`, (line.en || "") + "Night Admission"),
+    document.fonts.load(`400 30px ${SANS}`, "今晚的一句・館方碎念")
   ]).catch(() => {});
-  const c = document.createElement("canvas"); c.width = W * SC; c.height = H * SC;
-  const x = c.getContext("2d"); x.scale(SC, SC);
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d");
   const ls = v => { if ("letterSpacing" in x) x.letterSpacing = v; };
   // 燙金或月白銀箔，看句子的調性
-  const gold = (x0, x1) => { const g = x.createLinearGradient(x0, 0, x1, 0);
+  const foil = (x0, x1) => { const g = x.createLinearGradient(x0, 0, x1, 0);
     (wry ? [[0, "#9c742c"], [.2, "#f3dc9c"], [.38, "#c9993f"], [.55, "#f8e7b2"], [.74, "#a87c30"], [1, "#e9c97f"]]
       : [[0, "#7f8da6"], [.2, "#eef3fa"], [.38, "#a9b6cc"], [.55, "#f6f9fd"], [.74, "#8996ad"], [1, "#d7e0ec"]]).forEach(([o, col]) => g.addColorStop(o, col)); return g; };
   const AC = wry ? "232,200,137" : "207,217,232";
-  let g;
-  // 票：深墨藍厚卡，存根處左右各一個缺口
-  const tw = W, th = H, tx = 0, ty = 0, stubY = ty + th - 190, r = 22, rr = 18;
-  x.save();
-  const shape = () => {
-    x.beginPath();
-    x.moveTo(tx + rr, ty); x.lineTo(tx + tw - rr, ty); x.quadraticCurveTo(tx + tw, ty, tx + tw, ty + rr);
-    x.lineTo(tx + tw, stubY - r); x.arc(tx + tw, stubY, r, -Math.PI / 2, Math.PI / 2, true);
-    x.lineTo(tx + tw, ty + th - rr); x.quadraticCurveTo(tx + tw, ty + th, tx + tw - rr, ty + th);
-    x.lineTo(tx + rr, ty + th); x.quadraticCurveTo(tx, ty + th, tx, ty + th - rr);
-    x.lineTo(tx, stubY + r); x.arc(tx, stubY, r, Math.PI / 2, -Math.PI / 2, true);
-    x.lineTo(tx, ty + rr); x.quadraticCurveTo(tx, ty, tx + rr, ty); x.closePath();
-  };
-  shape();
-  g = x.createLinearGradient(tx, ty, tx + tw * .4, ty + th); g.addColorStop(0, "#13213f"); g.addColorStop(.55, "#0d1730"); g.addColorStop(1, "#0a1226");
-  x.fillStyle = g; x.fill();
-  x.save(); shape(); x.clip();
-  g = x.createRadialGradient(tx + tw * .3, ty, 20, tx + tw * .3, ty, 900); g.addColorStop(0, "rgba(80,110,170,.22)"); g.addColorStop(1, "rgba(80,110,170,0)");
-  x.fillStyle = g; x.fillRect(tx, ty, tw, th);
-  // 底紋：同心圓
-  x.strokeStyle = `rgba(${AC},.07)`; x.lineWidth = 1.4;
-  for (let gx = tx; gx < tx + tw + 470; gx += 470) for (let gy = ty; gy < ty + th + 470; gy += 470) {
-    for (let k = 1; k <= 6; k++) { x.beginPath(); x.arc(gx + 235, gy + 235, 47 * k, 0, Math.PI * 2); x.stroke(); }
-    x.beginPath(); x.arc(gx, gy, 113, 0, Math.PI * 2); x.stroke();
+  const cx = W / 2;
+  // 卡紙：深墨藍漸層＋左上一點光＋很淡的紙纖維
+  let g = x.createLinearGradient(0, 0, W * .5, H); g.addColorStop(0, "#15233f"); g.addColorStop(.55, "#0e1830"); g.addColorStop(1, "#0a1226");
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  g = x.createRadialGradient(W * .28, 0, 40, W * .28, 0, 1100); g.addColorStop(0, "rgba(90,120,180,.22)"); g.addColorStop(1, "rgba(90,120,180,0)");
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 2600; i++) { x.fillStyle = `rgba(${rand() > .5 ? "255,255,255" : "0,0,0"},${.025 + rand() * .035})`; x.fillRect(rand() * W, rand() * H, 1 + rand() * 2, 1); }
+  // 雙層細框＋四角菱形（完整畫在框內，不會被裁掉）
+  x.strokeStyle = `rgba(${AC},.55)`; x.lineWidth = 2; x.strokeRect(60, 60, W - 120, H - 120);
+  x.strokeStyle = `rgba(${AC},.22)`; x.lineWidth = 1.5; x.strokeRect(76, 76, W - 152, H - 152);
+  for (const [dx, dy] of [[60, 60], [W - 60, 60], [60, H - 60], [W - 60, H - 60]]) {
+    x.save(); x.translate(dx, dy); x.rotate(Math.PI / 4); x.fillStyle = "#0e1830"; x.fillRect(-11, -11, 22, 22); x.strokeStyle = `rgba(${AC},.85)`; x.lineWidth = 2; x.strokeRect(-11, -11, 22, 22); x.restore();
   }
-  x.restore();
-  // 燙金細框＋上方兩個菱形
-  const fi = 28; x.strokeStyle = `rgba(${AC},.45)`; x.lineWidth = 2;
-  x.beginPath(); x.moveTo(tx + fi, stubY - 26); x.lineTo(tx + fi, ty + fi); x.lineTo(tx + tw - fi, ty + fi); x.lineTo(tx + tw - fi, stubY - 26); x.stroke();
-  for (const dx of [tx + fi, tx + tw - fi]) { x.save(); x.translate(dx, ty + fi); x.rotate(Math.PI / 4); x.fillStyle = "#0e1932"; x.fillRect(-10, -10, 20, 20); x.strokeStyle = `rgba(${AC},.75)`; x.strokeRect(-10, -10, 20, 20); x.restore(); }
-  // 撕線
-  x.fillStyle = `rgba(${AC},.55)`;
-  for (let px = tx + 46; px < tx + tw - 46; px += 16) x.fillRect(px, stubY - 1, 5, 2);
-  const cx = W / 2; x.textAlign = "center"; x.textBaseline = "alphabetic";
+  x.textAlign = "center"; x.textBaseline = "alphabetic";
   // 燈籠館徽
-  x.save(); x.translate(cx - 36, ty + 92); x.scale(2.4, 2.4); x.fillStyle = gold(0, 30); x.strokeStyle = gold(0, 30); x.lineWidth = 1.2;
+  x.save(); x.translate(cx - 45, 190); x.scale(3, 3); x.fillStyle = foil(0, 30); x.strokeStyle = foil(0, 30); x.lineWidth = 1.2;
   x.beginPath(); x.arc(15, 3.2, 2.4, 0, Math.PI * 2); x.stroke();
   x.beginPath(); x.moveTo(7, 11); x.lineTo(23, 11); x.lineTo(19.5, 6); x.lineTo(10.5, 6); x.closePath(); x.fill();
   x.strokeRect(8, 11, 14, 19);
   x.beginPath(); x.moveTo(15, 15); x.bezierCurveTo(18.5, 19.5, 18.5, 23, 15, 25.5); x.bezierCurveTo(11.5, 23, 11.5, 19.5, 15, 15); x.fill();
   x.fillRect(6, 30, 18, 3.2); x.beginPath(); x.moveTo(9, 33.2); x.lineTo(10.5, 37); x.lineTo(19.5, 37); x.lineTo(21, 33.2); x.closePath(); x.fill();
   x.restore();
-  x.fillStyle = gold(cx - 300, cx + 300); x.font = `600 30px ${LATIN}`; ls("16px"); x.fillText("MUSEUM OF GLIMMERS", cx + 8, ty + 236);
-  x.fillStyle = "#efe6d2"; x.font = `700 46px ${SERIF}`; ls("22px"); x.fillText("微光博物館", cx + 11, ty + 302);
-  const rule = y0 => { const g2 = x.createLinearGradient(cx - 110, 0, cx + 110, 0); g2.addColorStop(0, `rgba(${AC},0)`); g2.addColorStop(.5, `rgba(${AC},.9)`); g2.addColorStop(1, `rgba(${AC},0)`);
-    x.fillStyle = g2; x.fillRect(cx - 110, y0, 220, 2); x.save(); x.translate(cx, y0 + 1); x.rotate(Math.PI / 4); x.fillStyle = `rgb(${AC})`; x.fillRect(-7, -7, 14, 14); x.restore(); };
-  rule(ty + 372);
-  x.fillStyle = `rgba(${AC},.8)`; x.font = `400 26px ${SANS}`; ls("12px"); x.fillText(wry ? "今晚的一句・館方碎念" : "今晚的一句", cx + 6, ty + 460);
-  // 那句話：中文照標點換行（太長再折），英文照單字折；整段放在兩條線中間
-  x.font = `500 54px ${SERIF}`; ls("6px");
-  const zl = quoteLines(line.zh).flatMap(l => wrap(x, l, tw - 150));
-  x.font = `italic 500 40px ${LATIN}`; ls("0px");
-  const el = line.en ? wrap(x, line.en, tw - 170, true) : [];
-  const top = ty + 500, bottom = stubY - 210, blockH = zl.length * 96 + (el.length ? 30 + el.length * 54 : 0);
-  let y = top + Math.max(0, (bottom - top - blockH) / 2) + 60;
-  x.fillStyle = "#f3ecdb"; x.font = `500 54px ${SERIF}`; ls("6px");
-  for (const l of zl) { x.fillText(l, cx + 3, y); y += 96; }
-  if (el.length) { y += 10; x.fillStyle = "rgba(239,230,210,.6)"; x.font = `italic 500 40px ${LATIN}`; ls("0px");
-    for (const l of el) { x.fillText(l, cx, y); y += 54; } }
-  rule(stubY - 170);
-  x.fillStyle = `rgba(${AC},.72)`; x.font = `400 26px ${SANS}`; ls("12px"); x.fillText("微光博物館　敬贈", cx + 6, stubY - 100);
-  // 存根
-  x.textAlign = "left"; x.fillStyle = "rgba(239,230,210,.8)"; x.font = `500 32px ${SERIF}`; ls("12px"); x.fillText("夜間入館券", tx + 70, stubY + 88);
-  x.fillStyle = "rgba(239,230,210,.55)"; x.font = `italic 500 34px ${LATIN}`; ls("2px"); x.fillText("Night Admission", tx + 70, stubY + 134);
-  // 日期用襯線中文字型的數字（等高），英文字型的數字高低不一
-  x.textAlign = "right"; x.fillStyle = gold(tx + tw - 330, tx + tw - 70); x.font = `700 46px ${SERIF}`; ls("4px"); x.fillText(dateStr(issuedAt), tx + tw - 66, stubY + 116);
-  x.restore();
+  x.fillStyle = foil(cx - 320, cx + 320); x.font = `600 34px ${LATIN}`; ls("18px"); x.fillText("MUSEUM OF GLIMMERS", cx + 9, 390);
+  x.fillStyle = "#f3ecdb"; x.font = `700 56px ${SERIF}`; ls("26px"); x.fillText("微光博物館", cx + 13, 470);
+  const rule = y0 => { const g2 = x.createLinearGradient(cx - 150, 0, cx + 150, 0); g2.addColorStop(0, `rgba(${AC},0)`); g2.addColorStop(.5, `rgba(${AC},.95)`); g2.addColorStop(1, `rgba(${AC},0)`);
+    x.fillStyle = g2; x.fillRect(cx - 150, y0, 300, 2); x.save(); x.translate(cx, y0 + 1); x.rotate(Math.PI / 4); x.fillStyle = `rgb(${AC})`; x.fillRect(-8, -8, 16, 16); x.restore(); };
+  rule(545);
+  x.fillStyle = `rgba(${AC},.85)`; x.font = `400 30px ${SANS}`; ls("14px"); x.fillText(wry ? "今晚的一句・館方碎念" : "今晚的一句", cx + 7, 640);
+  // 那句話：大字置中；中文照標點換行（太長再折），英文照單字折
+  // 字級自動縮放：每一段（逗號斷開）盡量一行放得下，不把「一整天」這種詞拆開；太長才折行
+  const maxW = W - 200, fit = l => x.measureText(l).width <= maxW;
+  let fs = 72, segs;
+  for (; fs >= 50; fs -= 2) { x.font = `500 ${fs}px ${SERIF}`; ls("6px"); segs = quoteLines(line.zh, fit); if (segs.length <= 3 && segs.every(fit)) break; }
+  fs = Math.max(fs, 50); x.font = `500 ${fs}px ${SERIF}`; ls("6px"); segs = quoteLines(line.zh, fit);
+  const zl = segs.flatMap(l => fit(l) ? [l] : wrap(x, l, maxW));
+  const lh = Math.round(fs * 1.72);
+  x.font = `italic 500 46px ${LATIN}`; ls("0px");
+  const el = line.en ? wrap(x, line.en, W - 300, true) : [];
+  const top = 700, bottom = 1400, blockH = zl.length * lh + (el.length ? 40 + el.length * 64 : 0);
+  let y = top + Math.max(0, (bottom - top - blockH) / 2) + 80;
+  x.fillStyle = "#f6efdf"; x.font = `500 ${fs}px ${SERIF}`; ls("6px");
+  for (const l of zl) { x.fillText(l, cx + 3, y); y += lh; }
+  if (el.length) { y += 14; x.fillStyle = "rgba(239,230,210,.62)"; x.font = `italic 500 46px ${LATIN}`; ls("0px");
+    for (const l of el) { x.fillText(l, cx, y); y += 64; } }
+  // 撕線：一排點＋兩側半圓缺口（用卡紙的深色畫，不是透明的洞）
+  const sy = 1500;
+  x.fillStyle = `rgba(${AC},.6)`; for (let px = 120; px < W - 120; px += 22) x.fillRect(px, sy - 1, 8, 2);
+  for (const ex of [76, W - 76]) { x.fillStyle = "#070d1a"; x.beginPath(); x.arc(ex, sy, 18, 0, Math.PI * 2); x.fill(); x.strokeStyle = `rgba(${AC},.4)`; x.lineWidth = 1.5; x.stroke(); }
+  // 存根：夜間入館券＋日期（日期用襯線中文字型的數字，等高）
+  x.textAlign = "left"; x.fillStyle = "rgba(243,236,219,.88)"; x.font = `700 38px ${SERIF}`; ls("14px"); x.fillText("夜間入館券", 136, 1620);
+  x.fillStyle = "rgba(239,230,210,.6)"; x.font = `italic 500 38px ${LATIN}`; ls("2px"); x.fillText("Night Admission", 136, 1676);
+  x.textAlign = "right"; x.fillStyle = foil(W - 470, W - 130); x.font = `700 54px ${SERIF}`; ls("4px"); x.fillText(dateStr(issuedAt), W - 132, 1650);
+  x.textAlign = "center"; x.fillStyle = `rgba(${AC},.7)`; x.font = `500 28px ${SERIF}`; ls("12px"); x.fillText("引路人教育園區", cx + 6, 1790);
   return new Promise(res => c.toBlob(res, "image/png"));
 }
 async function saveTicket() {
@@ -280,7 +273,7 @@ const map = createMap($("map"), {
     const pool = (night ? D.guard : D.guardDay)?.length ? (night ? D.guard : D.guardDay) : [{ zh: "慢慢逛，不用趕。", en: "Take your time." }];
     return pool[Math.floor(Math.random() * pool.length)];
   },
-  openPlacard: (e, from) => openPlacard(e, from),
+  openPlacard: (e, from, night) => openPlacard(e, from, night),
   blocked: () => !$("placard").hidden || !$("leave").hidden || mode === "catalog",
   exit: () => askLeave()
 });
@@ -352,7 +345,8 @@ $("catalog").addEventListener("click", ev => {
 
 /* ---------- 展品說明牌 ---------- */
 let lastFocus = null;
-function openPlacard(e, from) {
+// withQuip：夜遊時打開才放展品的自白（白天、全覽就是單純的展品資料）
+function openPlacard(e, from, withQuip = false) {
   lastFocus = from || document.activeElement;
   const f = FLOOR[e.floor] || {}, reno = e.status === "renovating";
   const pc = $("pl-case");
@@ -362,8 +356,9 @@ function openPlacard(e, from) {
   $("pl-title").textContent = e.title;
   $("pl-en").textContent = e.en;
   // 展品的自白：它被你抓到時說的那句
-  $("pl-quip").textContent = e.persona?.quip ? `「${e.persona.quip}」` : "";
-  $("pl-quip").hidden = !e.persona?.quip;
+  const quip = withQuip && e.persona?.quip;
+  $("pl-quip").textContent = quip ? `「${e.persona.quip}」` : "";
+  $("pl-quip").hidden = !quip;
   $("pl-meta").innerHTML = [["類型", e.kind || "—"], ["年代", e.version || "—"], ["展廳", f.label || "—"]]
     .map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
   $("pl-note").textContent = e.note;

@@ -565,3 +565,75 @@ export function flipped(cv, key) {
   const x = c.getContext("2d"); x.translate(cv.width, 0); x.scale(-1, 1); x.drawImage(cv, 0, 0);
   cache.set(key, c); return c;
 }
+
+/* ---------- 放大兩倍（Scale2x）：展品放大後邊緣還是圓順，不會變成一格一格的大方塊 ---------- */
+export function scale2x(rows) {
+  const h = rows.length, w = rows[0].length, at = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? rows[Math.max(0, Math.min(h - 1, y))][Math.max(0, Math.min(w - 1, x))] : rows[y][x];
+  const out = Array.from({ length: h * 2 }, () => new Array(w * 2));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const P = at(x, y), A = at(x, y - 1), B = at(x + 1, y), C = at(x - 1, y), D = at(x, y + 1);
+    let e0 = P, e1 = P, e2 = P, e3 = P;
+    if (C === A && C !== D && A !== B) e0 = A;
+    if (A === B && A !== C && B !== D) e1 = B;
+    if (D === C && D !== B && C !== A) e2 = C;
+    if (B === D && B !== A && D !== C) e3 = D;
+    out[y * 2][x * 2] = e0; out[y * 2][x * 2 + 1] = e1; out[y * 2 + 1][x * 2] = e2; out[y * 2 + 1][x * 2 + 1] = e3;
+  }
+  return out.map(r => r.join(""));
+}
+
+/* ---------- 館內陳設 ---------- */
+// 盆栽（16×24）：黃銅盆＋寬葉
+export const PLANT = [
+  "......k..k......",
+  ".....kyk.kyk....",
+  "...k.kyYkkyYk...",
+  "..kyk.kyYkyYk.k.",
+  "..kyYk.kyyYkkyk.",
+  "...kyYkkyyYkyYk.",
+  ".k..kyYkyyYyYk..",
+  "kyk..kyykyykk...",
+  "kyYkk.kyyyYk.kk.",
+  ".kyYYkkyyYkkkyYk",
+  "..kkyYYyyYYyyYk.",
+  "....kkyyyyYYkk..",
+  "......kkyykk....",
+  "........kk......",
+  ".......kYk......",
+  ".....kkkkkkk....",
+  "....kgGGGgggk...",
+  "....kggggggbk...",
+  ".....kgggggk....",
+  ".....kgbgbgk....",
+  ".....kggggbk....",
+  "......kgggk.....",
+  "......kkkkk.....",
+  "................"
+];
+// 導覽立牌（16×24）：木架上一張暖紙色海報
+export const EASEL = [
+  "................",
+  "..kkkkkkkkkkkk..",
+  "..kiiiiiiiiiik..",
+  "..kijjjjjjjjik..",
+  "..kiiiiiiiiiik..",
+  "..kigggggggiik..",
+  "..kiiiiiiiiiik..",
+  "..kijjjjjjjjik..",
+  "..kijjjjjjiiik..",
+  "..kiiiiiiiiiik..",
+  "..kijjjjjjjjik..",
+  "..kijjjjjiiiik..",
+  "..kiiiiiiiiiik..",
+  "..kkkkkkkkkkkk..",
+  "...kVk....kVk...",
+  "...kVk....kVk...",
+  "..kVk......kVk..",
+  "..kVk......kVk..",
+  ".kVk........kVk.",
+  ".kVk........kVk.",
+  "kVk..........kVk",
+  "kkk..........kkk",
+  "................",
+  "................"
+];
