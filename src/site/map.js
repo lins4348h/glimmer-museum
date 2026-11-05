@@ -198,21 +198,27 @@ function paintPainting(x, p) {
     px(3, 3, iw, ih, "#2a2238"); px(3 + Math.floor(iw / 2) - 1, 3 + Math.floor(ih / 2) - 1, 3, 3, "#f3d895"); px(3, 3 + ih - 2, iw, 2, "#3b2f4c");
   }
 }
-// 展櫃：細長的台座＋小玻璃罩（展品原尺寸放在裡面，跟人的比例相稱），前面一條紅龍柱繩
-// 佔兩格寬，是為了展櫃之間留走道和掛窗的空間
+// 展櫃：古典細柱台座（柱頭、凹槽柱身、柱腳）＋圓肩玻璃罩，牆上一盞小聚光燈往下照
+// 展品原尺寸放在罩裡，跟人的比例相稱；佔兩格寬是為了展櫃之間留走道和掛窗
 function paintVitrine(x, X, Y) {
   const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(X + a, Y + b, w, h); };
-  px(8, 27, 18, 2, "rgba(0,0,0,.35)");
-  // 玻璃罩裡面（空的時候看得出是空的）
-  px(7, -8, 18, 19, "rgba(8,14,28,.55)");
-  // 台座：頂板、柱身（左亮右暗）、小展牌、底座
-  px(6, 11, 20, 3, "#0a1020"); px(7, 11, 18, 2, "#2f4775"); px(7, 13, 18, 1, "#d4a64a");
-  px(9, 14, 14, 11, "#1b2a4a"); px(9, 14, 1, 11, "#2c3f68"); px(22, 14, 1, 11, "#111c33");
-  px(12, 17, 8, 4, "#efe6d2"); px(13, 18, 6, 1, "#8f8062"); px(13, 19, 4, 1, "#8f8062");
-  px(7, 25, 18, 2, "#0a1020"); px(8, 25, 16, 1, "#2a3c63");
-  // 紅龍柱（深墨藍絲絨繩）
-  for (const sx of [1, 29]) { px(sx, 20, 2, 9, "#b38a3b"); px(sx, 19, 2, 1, "#f3d895"); px(sx - 1, 28, 4, 1, "#8a6420"); }
-  for (let i = 3; i < 29; i++) { const sag = Math.round(Math.sin((i - 3) / 25 * Math.PI) * 2); px(i, 22 + sag, 1, 1, "#4d6390"); px(i, 23 + sag, 1, 1, "#2f3f73"); }
+  // 牆上的小聚光燈：一支黃銅臂伸出來，燈頭朝下
+  px(15, -24, 2, 5, "#8a6420"); px(12, -20, 8, 3, "#b38a3b"); px(12, -20, 8, 1, "#f3d895"); px(13, -17, 6, 1, "#fff3cf");
+  px(9, 27, 14, 2, "rgba(0,0,0,.35)");
+  // 罩子裡面（空的時候看得出是空的）
+  px(8, -8, 16, 19, "rgba(8,14,28,.5)"); px(9, -9, 14, 1, "rgba(8,14,28,.5)");
+  // 柱頭
+  px(7, 11, 18, 2, "#0a1020"); px(8, 11, 16, 1, "#3a5487"); px(8, 12, 16, 1, "#d4a64a");
+  px(10, 13, 12, 1, "#24365c");
+  // 柱身：兩條凹槽、左亮右暗、一張小展牌
+  px(11, 14, 10, 10, "#1b2a4a"); px(11, 14, 1, 10, "#2c3f68"); px(20, 14, 1, 10, "#0f1a30");
+  px(13, 14, 1, 10, "#142039"); px(18, 14, 1, 10, "#142039");
+  px(13, 17, 6, 3, "#efe6d2"); px(14, 18, 4, 1, "#8f8062");
+  // 柱腳
+  px(10, 24, 12, 1, "#24365c"); px(9, 25, 14, 2, "#2a3c63"); px(9, 25, 14, 1, "rgba(232,200,137,.5)"); px(8, 27, 16, 1, "#0a1020");
+  // 紅龍柱：兩根矮柱＋一條細絨繩
+  for (const sx of [2, 29]) { px(sx, 22, 1, 7, "#b38a3b"); px(sx - 1, 21, 3, 1, "#f3d895"); px(sx - 1, 28, 3, 1, "#8a6420"); }
+  for (let i = 3; i < 29; i++) px(i, 24 + Math.round(Math.sin((i - 3) / 25 * Math.PI) * 2), 1, 1, "#3d5288");
 }
 function paintRunner(x) {
   // 大廳：從南門到台座的長地毯
@@ -402,19 +408,14 @@ export function createMap(root, opt) {
   const joy = { id: null, bx: 0, by: 0, dx: 0, dy: 0 };
 
   /* ---------- 牌子、對話泡泡（DOM，跟著鏡頭移動） ---------- */
-  const signs = WINGS.filter(w => halls[w]).map(w => {
-    const f = halls[w], d = DOORS[w];
-    const el = document.createElement("span"); el.className = "m-sign";
-    el.innerHTML = `<i>${esc(f.numeral || "")}</i>${esc(f.name)}`;
-    layer.appendChild(el);
-    return { el, x: d.sign[0] * T, y: d.sign[1] * T };
-  });
+  // 廳名不掛牌子：走進廳時上方會浮出廳名（使用者覺得黃色牌子干擾畫面）；只留出口的月白牌，要找得到出口
+  const signs = [];
   const exitSign = document.createElement("span"); exitSign.className = "m-sign m-exit"; exitSign.innerHTML = "出口<i>EXIT</i>";
   layer.appendChild(exitSign); signs.push({ el: exitSign, x: (EXIT.x + 1) * T, y: EXIT.y * T - 8 });
-  const plat = document.createElement("span"); plat.className = "m-sign m-plat"; plat.textContent = "鎮館之寶";
-  layer.appendChild(plat); signs.push({ el: plat, x: PLATFORM.cx * T, y: PLATFORM.cy * T + 22 });
   const bubbles = [];
   function say(who, text, ms = 3200) {
+    // 同一時間只說一句：新的說話，舊的先收起來，泡泡才不會疊在一起
+    for (const o of bubbles) if (o.who !== who) { o.until = 0; o.el.hidden = true; }
     let b = bubbles.find(b => b.who === who);
     if (!b) { b = { who, el: document.createElement("p") }; b.el.className = "m-bubble"; layer.appendChild(b.el); bubbles.push(b); }
     b.el.innerHTML = text; b.until = performance.now() + ms; b.el.hidden = false;
@@ -606,7 +607,7 @@ export function createMap(root, opt) {
     // 可以互動的東西頭上一個小金箭頭
     if (near) {
       const bob = reduced ? 0 : Math.round(Math.sin(ts * 5) * 1.5);
-      const ax = near.kind === "item" ? near.it.home.x : EXIT_AT.x, ay = near.kind === "item" ? near.it.ty * T - 16 : EXIT.y * T + 4;
+      const ax = near.kind === "item" ? near.it.home.x : EXIT_AT.x, ay = near.kind === "item" ? near.it.ty * T - 13 : EXIT.y * T + 4;
       drawArrow(ax - cx, ay - cy + bob);
     }
     if (night) lightPass(cx, cy, ts); else litPass(cx, cy);
@@ -642,17 +643,23 @@ export function createMap(root, opt) {
     }
     blit(img, X, Y, flip);
   }
-  // 玻璃罩：細邊框、斜斜的反光、黃銅頂蓋和小頂飾；整修中罩一塊布
+  // 玻璃罩：圓肩、細邊框、斜斜的反光、頂上一顆黃銅小鈕；聚光燈打下來的一道光；整修中罩一塊布
   function drawGlass(X, Y, it) {
     const f = (a, b, w, h, c) => { fx.fillStyle = c; fx.fillRect(X + a, Y + b, w, h); };
+    // 聚光燈的光：從燈頭往下張開，照在展品上（夜裡亮、白天淡）
+    fx.globalCompositeOperation = "lighter";
+    fx.fillStyle = night ? "rgba(255,214,150,.13)" : "rgba(255,226,180,.07)";
+    fx.beginPath(); fx.moveTo(X + 13, Y - 16); fx.lineTo(X + 19, Y - 16); fx.lineTo(X + 23, Y + 10); fx.lineTo(X + 9, Y + 10); fx.closePath(); fx.fill();
+    fx.globalCompositeOperation = "source-over";
     if (it.e.status === "renovating") {
-      f(7, -8, 18, 19, "#5e4428"); for (let i = 0; i < 18; i += 3) f(7 + i, -8, 1, 19, "#7a5c35");
-      f(7, -8, 18, 1, "#4a3520");
+      f(8, -8, 16, 19, "#5e4428"); for (let i = 0; i < 16; i += 3) f(8 + i, -8, 1, 19, "#7a5c35");
+      f(9, -9, 14, 1, "#4a3520");
     }
-    f(7, -8, 18, 19, "rgba(207,226,245,.07)");
-    f(7, -8, 1, 19, "rgba(223,231,242,.5)"); f(24, -8, 1, 19, "rgba(223,231,242,.3)");
-    for (let i = 0; i < 7; i++) f(10 + i, -6 + i * 2, 1, 2, "rgba(255,255,255,.12)");
-    f(6, -10, 20, 2, "#b38a3b"); f(6, -10, 20, 1, "#f3d895"); f(15, -12, 2, 2, "#d4a64a");
+    f(8, -8, 16, 19, "rgba(207,226,245,.06)");
+    f(9, -9, 14, 1, "rgba(223,231,242,.55)"); f(8, -8, 1, 1, "rgba(223,231,242,.45)"); f(23, -8, 1, 1, "rgba(223,231,242,.3)");
+    f(7, -7, 1, 18, "rgba(223,231,242,.5)"); f(24, -7, 1, 18, "rgba(223,231,242,.28)");
+    for (let i = 0; i < 6; i++) f(10 + i, -5 + i * 2, 1, 2, "rgba(255,255,255,.13)");
+    f(15, -11, 2, 2, "#d4a64a"); f(15, -11, 1, 1, "#f3d895");
   }
   function shadow(X, Y, w = 10) {
     fx.fillStyle = "rgba(0,0,0,.28)"; fx.fillRect(Math.round(X) - w / 2, Math.round(Y) - 1, w, 2); fx.fillRect(Math.round(X) - w / 2 + 2, Math.round(Y) + 1, w - 4, 1);
@@ -745,13 +752,22 @@ export function createMap(root, opt) {
     const at = (el, X, Y) => { el.style.transform = `translate(${Math.round((X - cx) * S)}px, ${Math.round((Y - cy) * S)}px)`; };
     for (const s of signs) at(s.el, s.x, s.y);
     const now = performance.now();
+    // 泡泡一定在畫面裡：左右夾在邊界內；上方會被頂端的按鈕列擋到時，改放到說話的人下面
+    const W = root.clientWidth, H = root.clientHeight, TOP = 64;
     for (const b of bubbles) {
       if (b.until < now) { b.el.hidden = true; continue; }
-      let X, Y;
-      if (b.who === "guard") { X = GUARD_AT.x; Y = GUARD_AT.y - 26; }
-      else if (b.who === "dino") { X = dino.x; Y = dino.y - 30; }
-      else { const it = items.find(i => "item" + i.e.id === b.who); X = it.x; Y = it.y - 26; }
-      at(b.el, X, Y);
+      let X, up, down;
+      if (b.who === "guard") { X = GUARD_AT.x; up = GUARD_AT.y - 26; down = GUARD_AT.y + 4; }
+      else if (b.who === "dino") { X = dino.x; up = dino.y - 30; down = dino.y + 6; }
+      else { const it = items.find(i => "item" + i.e.id === b.who); X = it.x; up = it.y - 24; down = it.y + (it.state === "home" ? 18 : 4); }
+      const bw = b.el.offsetWidth, bh = b.el.offsetHeight;
+      const sx = (X - cx) * S, su = (up - cy) * S, sd = (down - cy) * S;
+      const below = su - bh - 8 < TOP;
+      const left = clamp(sx - bw / 2, 8, Math.max(8, W - 8 - bw));
+      const top = clamp(below ? sd + 10 : su - bh - 8, TOP, Math.max(TOP, H - bh - 8));
+      b.el.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+      b.el.style.setProperty("--tail", `${Math.round(clamp(sx - left, 12, bw - 12))}px`);
+      b.el.classList.toggle("below", below);
     }
   }
 
