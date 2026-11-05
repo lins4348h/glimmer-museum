@@ -13,57 +13,64 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap">
 <link rel="stylesheet" href="museum.css">
+<link rel="stylesheet" href="inside.css">
 </head>
-<body class="is-lit">
+<body class="is-lit at-booth">
 
-<!-- 館內空間：牆、窗、吊燈、櫥窗、石地板。所有畫面共用 -->
+<!-- 大廳：牆、天花板線腳、兩側拱窗、吊燈、石地板。售票口、票、熄燈共用 -->
 <div class="hall" aria-hidden="true">
   <div class="hall-wall"></div>
-  <div class="hall-windows">
-    <div class="arch"><span class="shaft"></span></div>
-    <div class="arch"><span class="shaft"></span></div>
-    <div class="arch arch-moon"><span class="shaft"></span></div>
-  </div>
-  <div class="hall-rail"></div>
+  <div class="hall-cornice"></div>
+  <div class="hall-windows" id="hall-windows"></div>
   <div class="hall-lamps" id="lamps"></div>
-  <div class="hall-floor"><div class="floor-tiles"></div><div class="floor-shine" id="floor-shine"></div></div>
-  <div class="hall-cases" id="cases"></div>
+  <div class="hall-floor"><div class="floor-tiles"></div></div>
   <div class="hall-grain"></div>
 </div>
 
-<!-- 熄燈後的黑暗＋手電筒 -->
-<div class="dark" id="dark" aria-hidden="true"><div class="beam"></div></div>
-
 <!-- 一、夜間售票口 -->
 <section class="scene booth-scene" id="booth-scene" aria-labelledby="booth-title">
-  <button class="link-btn skip" id="skip" type="button">略過，直接進館</button>
-  <header class="scene-head">
-    <p class="kicker">Museum of Glimmers</p>
-    <h1 class="title" id="booth-title">微光博物館</h1>
-  </header>
-  <!-- 掛在牆上的樓層牌：點一行，向售票窗買那一層的票 -->
-  <div class="wall-sign">
-    <span class="ws-rod l" aria-hidden="true"></span><span class="ws-rod r" aria-hidden="true"></span>
-    <div class="ws-board">
-      <p class="ws-head">今晚，想去哪裡走走？<i>Where to, tonight?</i></p>
-      <div class="zones" id="zones" role="group" aria-label="選一個展區"></div>
+  <div class="lobby">
+    <header class="scene-head">
+      <p class="kicker">Museum of Glimmers</p>
+      <h1 class="title" id="booth-title">微光博物館</h1>
+    </header>
+    <!-- 掛在牆上的樓層牌：點一行，向售票窗買那一層的票 -->
+    <div class="wall-sign">
+      <span class="ws-rod l" aria-hidden="true"></span><span class="ws-rod r" aria-hidden="true"></span>
+      <div class="ws-board">
+        <p class="ws-head">今晚，想去哪裡走走？<i>Where to, tonight?</i></p>
+        <div class="zones" id="zones" role="group" aria-label="選一個展區"></div>
+      </div>
+      <p class="ws-hint">點一個展區，向售票窗買票</p>
     </div>
-    <p class="ws-hint">點一個展區，向售票窗買票</p>
-  </div>
-  <div class="booth" id="booth">
-    <div class="booth-house">
-      <span class="booth-cornice"></span>
-      <div class="booth-frame">
-        <div class="booth-glass">
-          <div class="booth-board">
-            <p class="bb-sign">夜間售票</p>
-            <p class="bb-en">Night Admission</p>
+    <div class="lobby-gap"></div>
+    <!-- 售票亭：拱頂山牆、凹槽壁柱、拱形暖光窗、通話孔、大理石檯面、出票口、鑲板台座 -->
+    <div class="booth" id="booth">
+      <div class="booth-crown" aria-hidden="true">
+        <svg class="crown-emblem" viewBox="0 0 30 38"><use href="#emblem"/></svg>
+      </div>
+      <div class="booth-cornice" aria-hidden="true"></div>
+      <div class="booth-body">
+        <span class="pilaster l" aria-hidden="true"></span><span class="pilaster r" aria-hidden="true"></span>
+        <div class="booth-frame">
+          <div class="booth-glass">
+            <div class="booth-board">
+              <p class="bb-sign">夜間售票</p>
+              <p class="bb-en">Night Admission</p>
+            </div>
+            <span class="booth-grille" aria-hidden="true"></span>
           </div>
         </div>
       </div>
+      <div class="booth-ledge"><span class="booth-slot" id="booth-slot"></span></div>
+      <div class="booth-base" aria-hidden="true"><span class="booth-panel"></span></div>
+      <div class="booth-plinth" aria-hidden="true"></div>
     </div>
-    <div class="booth-ledge"><span class="booth-slot" id="booth-slot"></span></div>
-    <div class="booth-counter"></div>
+    <div class="lobby-floor">
+      <div class="floor-tiles" aria-hidden="true"></div>
+      <button class="link-btn skip" id="skip" type="button">略過，直接進館</button>
+      <footer class="site-foot" id="site-foot"></footer>
+    </div>
   </div>
 </section>
 
@@ -74,15 +81,7 @@
       <div class="tk tk-main">
         <span class="tk-frame"><i></i><i></i></span>
         <div class="tk-in">
-          <svg class="tk-emblem" viewBox="0 0 30 38" aria-hidden="true">
-            <defs><linearGradient id="tk-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#d4a64a"/><stop offset="1" stop-color="#9c742c"/></linearGradient></defs>
-            <circle cx="15" cy="3.2" r="2.4" fill="none" stroke="url(#tk-gold)" stroke-width="1.2"/>
-            <path d="M7 11 L23 11 L19.5 6 L10.5 6 Z" fill="url(#tk-gold)"/>
-            <rect x="8" y="11" width="14" height="19" fill="none" stroke="url(#tk-gold)" stroke-width="1.2"/>
-            <path d="M15 15 C18.5 19.5 18.5 23 15 25.5 C11.5 23 11.5 19.5 15 15 Z" fill="url(#tk-gold)"/>
-            <rect x="6" y="30" width="18" height="3.2" rx="1" fill="url(#tk-gold)"/>
-            <path d="M9 33.2 L10.5 37 L19.5 37 L21 33.2 Z" fill="url(#tk-gold)"/>
-          </svg>
+          <svg class="tk-emblem" viewBox="0 0 30 38" aria-hidden="true"><use href="#emblem"/></svg>
           <p class="tk-museum foil">Museum of Glimmers</p>
           <p class="tk-name">微光博物館</p>
           <p class="tk-numeral foil" id="tk-numeral">II</p>
@@ -119,18 +118,22 @@
   </div>
 </section>
 
-<!-- 館內（樓層導覽圖，下一步開放） -->
-<section class="scene inside-scene" id="inside-scene" hidden aria-labelledby="dir-title">
-  <div class="directory">
-    <p class="kicker">Floor Directory</p>
-    <h2 class="dir-title" id="dir-title">樓層導覽</h2>
-    <ol class="dir-floors" id="dir-floors"></ol>
-    <p class="dir-note">館內佈展中，各樓層陸續開放。</p>
-    <button class="btn btn-ghost" id="dir-back" type="button">← 回到售票口</button>
+<!-- 四、館內：夜遊（提著手電筒走）／全覽（燈全亮，館藏目錄） -->
+<section class="scene inside-scene" id="inside-scene" hidden aria-label="館內">
+  <div class="in-hud">
+    <button class="link-btn hud-back" id="hud-back" type="button">← 售票口</button>
+    <div class="mode-switch" id="mode-switch" role="group" aria-label="參觀方式">
+      <span class="ms-thumb" aria-hidden="true"></span>
+      <button type="button" data-mode="walk" aria-pressed="true">夜遊<i>Wander</i></button>
+      <button type="button" data-mode="catalog" aria-pressed="false">全覽<i>Overview</i></button>
+    </div>
   </div>
+  <div class="walk" id="walk" hidden></div>
+  <div class="catalog" id="catalog" hidden></div>
+  <div class="in-veil" id="in-veil" aria-hidden="true"></div>
 </section>
 
-<!-- 展品說明牌（樓層開放後使用） -->
+<!-- 展品說明牌 -->
 <div class="placard-veil" id="placard" hidden>
   <article class="placard" role="dialog" aria-modal="true" aria-labelledby="pl-title">
     <button class="pl-close" id="pl-close" type="button" aria-label="關閉">×</button>
@@ -148,8 +151,22 @@
   </article>
 </div>
 
-<footer class="site-foot" id="site-foot"></footer>
 <p class="toast" id="toast" role="status" hidden></p>
+
+<!-- 燈籠館徽：售票亭山牆、票、館內共用 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="emblem-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#d4a64a"/><stop offset="1" stop-color="#9c742c"/></linearGradient>
+    <g id="emblem">
+      <circle cx="15" cy="3.2" r="2.4" fill="none" stroke="url(#emblem-gold)" stroke-width="1.2"/>
+      <path d="M7 11 L23 11 L19.5 6 L10.5 6 Z" fill="url(#emblem-gold)"/>
+      <rect x="8" y="11" width="14" height="19" fill="none" stroke="url(#emblem-gold)" stroke-width="1.2"/>
+      <path d="M15 15 C18.5 19.5 18.5 23 15 25.5 C11.5 23 11.5 19.5 15 15 Z" fill="url(#emblem-gold)"/>
+      <rect x="6" y="30" width="18" height="3.2" rx="1" fill="url(#emblem-gold)"/>
+      <path d="M9 33.2 L10.5 37 L19.5 37 L21 33.2 Z" fill="url(#emblem-gold)"/>
+    </g>
+  </defs>
+</svg>
 
 <script>window.MUSEUM = /*MUSEUM_DATA*/null;</script>
 <script type="module" src="museum.js"></script>

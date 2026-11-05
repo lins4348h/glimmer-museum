@@ -1,7 +1,9 @@
 // 微光博物館｜前台
-// 夜間售票口選展區 → 領到今晚的票（可存成圖）→ 前往：吊燈快速熄滅、拿到手電筒 → 樓層
+// 夜間售票口選展區 → 領到今晚的票（可存成圖）→ 前往：吊燈快速熄滅 → 館內
+// 館內兩種看法：夜遊（提著手電筒在長廊走）、全覽（燈全亮，館藏目錄）。
 // 選了哪個展區只在瀏覽器裡用，不記錄、不送出。
 import { objectSVG } from "./objects.js";
+import { createWalk, windowSVG } from "./walk.js";
 
 const D = window.MUSEUM;
 const $ = id => document.getElementById(id);
@@ -11,44 +13,29 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const narrow = () => innerWidth <= 760;
 
-const EX = Object.fromEntries(D.exhibits.map(e => [e.id, e]));
 const FLOOR = Object.fromEntries(D.floors.map(f => [f.id, f]));
 const ZONES = D.admission.zones;
 
 let zone = null, line = null, issuedAt = null;
 
-/* ---------- 館內：吊燈、地板反光、櫥窗 ---------- */
+/* ---------- 大廳：兩側拱窗、吊燈 ---------- */
+function buildHall() {
+  $("hall-windows").innerHTML = `<div class="hwin l">${windowSVG("l", false)}<span class="shaft"></span></div><div class="hwin r">${windowSVG("r", true)}<span class="shaft"></span></div>`;
+  buildLamps();
+}
+// 吊燈只掛在兩側，不擋館名、不擋樓層牌：位置照樓層牌的寬來算
 function buildLamps() {
-  // 吊燈只掛在兩側，不擋館名
-  const xs = narrow() ? [9, 91] : [5, 16, 27, 73, 84, 95], lamps = $("lamps"), shine = $("floor-shine");
-  lamps.innerHTML = ""; shine.innerHTML = "";
-  xs.forEach((x, i) => {
-    const l = document.createElement("div");
-    l.className = "lamp"; l.style.left = `${x}%`;
-    l.style.setProperty("--drop", narrow() ? `${34 + i * 10}px` : `${[96, 64, 112, 112, 64, 96][i]}px`);
-    l.innerHTML = '<span class="lamp-glow"></span><span class="lamp-shade"></span><span class="lamp-bulb"></span>';
-    lamps.appendChild(l);
-    const s = document.createElement("span");
-    s.style.left = `${x}%`; shine.appendChild(s);
-  });
+  const W = innerWidth, sign = document.querySelector(".wall-sign")?.offsetWidth || 320;
+  const lamps = narrow() ? [{ x: W * .1, d: 11 }, { x: W * .9, d: 15 }]
+    : [{ o: 70, d: 37 }, ...(W >= 1200 ? [{ o: 150, d: 23 }] : [])].flatMap(l => [{ x: W / 2 - sign / 2 - l.o, d: l.d }, { x: W / 2 + sign / 2 + l.o, d: l.d }]);
+  $("lamps").innerHTML = lamps.map(l => `<div class="lamp" style="left:${l.x.toFixed(0)}px;--drop:${l.d}%"><span class="lamp-glow"></span><span class="lamp-cap"></span><span class="lamp-globe"></span></div>`).join("");
   if (document.body.classList.contains("is-dark")) setLamps(false);
 }
-function setLamps(on) {
-  document.querySelectorAll(".lamp").forEach(l => l.classList.toggle("off", !on));
-  document.querySelectorAll(".floor-shine span").forEach(s => s.classList.toggle("off", !on));
-}
+function setLamps(on) { document.querySelectorAll(".lamp").forEach(l => l.classList.toggle("off", !on)); }
 
-function caseHTML(e, extra = "") {
-  return `<div class="case glow-${esc(e.glow)}" ${extra}><div class="case-glass"><span class="case-light"></span>${objectSVG(e.object)}</div><div class="case-base"></div></div>`;
-}
-// 牆邊一排櫥窗：亮燈時藏起來，熄燈後用手電筒找得到。選了展區就先擺那一層的展品
-function buildCases() {
-  const mine = zone?.floor ? D.exhibits.filter(e => e.floor === zone.floor) : [];
-  const list = [...mine, ...D.exhibits.filter(e => !mine.includes(e))].filter(e => e.onDisplay);
-  const spots = narrow() ? [{ x: 17, i: 1 }, { x: 50, i: 0 }, { x: 83, i: 2 }]
-    : [{ x: 7, i: 3 }, { x: 21, i: 4 }, { x: 36, i: 1 }, { x: 50, i: 0 }, { x: 64, i: 2 }, { x: 79, i: 5 }, { x: 93, i: 6 }];
-  const cw = narrow() ? Math.min(innerWidth * .25, 130) : Math.min(innerWidth * .105, 168);
-  $("cases").innerHTML = spots.map(s => list[s.i] ? caseHTML(list[s.i], `style="left:${s.x}%;--cw:${cw}px"`) : "").join("");
+/* ---------- 櫥窗（說明牌、全覽共用） ---------- */
+function caseHTML(e) {
+  return `<div class="case glow-${esc(e.glow)}"><div class="case-glass"><span class="case-light"></span>${objectSVG(e.object)}</div><div class="case-base"></div></div>`;
 }
 
 /* ---------- 一、夜間售票口 ---------- */
@@ -59,7 +46,7 @@ function zoneInfo(z) {
 function buildZones() {
   $("zones").innerHTML = ZONES.map(z => {
     const f = zoneInfo(z);
-    // 像售票窗上的價目表：羅馬數字、選項、點線、樓層
+    // 像老戲院的場次表：羅馬數字、選項、點線、樓層
     return `<button class="zone" type="button" data-id="${esc(z.id)}">
       <span class="zone-no">${esc(z.numeral)}</span><span class="zone-name">${esc(z.choice)}</span><span class="zone-dots" aria-hidden="true"></span>
       <span class="zone-floor">${esc(f.label || f.name)}${f.label ? `<em> ${esc(f.name)}</em>` : ""}</span></button>`;
@@ -81,15 +68,22 @@ async function issue(btn) {
   line = zone.lines[Math.floor(Math.random() * zone.lines.length)];
   issuedAt = new Date();
   $("zones").querySelectorAll(".zone").forEach(b => b.classList.toggle("on", b === btn));
+  // 手機上售票窗可能在下面：先滑到看得到出票口，再出票
+  const sc = $("booth-scene"), ledge = document.querySelector(".booth-ledge").getBoundingClientRect();
+  if (ledge.bottom > innerHeight - 24) {
+    sc.scrollTo({ top: sc.scrollTop + ledge.bottom - innerHeight + 90, behavior: REDUCED ? "auto" : "smooth" });
+    await wait(REDUCED ? 0 : 520);
+  }
   // 售票窗亮一下，票從出票口遞出來
   $("booth").classList.add("issuing");
   await wait(REDUCED ? 0 : 380);
   showTicket(true);
+  document.body.classList.remove("at-booth");
   // 票滑出窗口後，售票口才慢慢退到暗處
   await wait(REDUCED ? 0 : 900);
-  $("booth-scene").classList.add("leaving");
+  sc.classList.add("leaving");
   await wait(REDUCED ? 0 : 700);
-  $("booth-scene").hidden = true;
+  sc.hidden = true;
   busy = false;
 }
 
@@ -252,19 +246,17 @@ async function saveTicket() {
   btn.textContent = old; btn.disabled = false;
 }
 
-/* ---------- 三、熄燈：進館前的儀式，節奏要快 ---------- */
-async function lightsOut(fast = false) {
-  buildCases();
-  const lamps = [...document.querySelectorAll(".lamp")], shines = [...document.querySelectorAll(".floor-shine span")];
-  if (fast || REDUCED) setLamps(false);
-  else for (let i = 0; i < lamps.length; i++) {
-    lamps[i].classList.add("flick");
-    await wait(70);
-    lamps[i].classList.add("off"); shines[i]?.classList.add("off");
-    await wait(90);
+
+/* ---------- 三、熄燈：進館前的儀式，節奏要快（約 1 秒） ---------- */
+async function lightsOut() {
+  const lamps = [...document.querySelectorAll(".lamp")];
+  if (!REDUCED) {
+    // 由外往內一盞一盞熄
+    const order = lamps.map((l, i) => [l, Math.abs(parseFloat(l.style.left) - innerWidth / 2)]).sort((a, b) => b[1] - a[1]).map(a => a[0]);
+    for (const l of order) { l.classList.add("flick"); await wait(80); l.classList.add("off"); await wait(110); }
   }
+  setLamps(false);
   document.body.classList.add("is-dark"); document.body.classList.remove("is-lit");
-  startTorch();
 }
 async function enter() {
   if (busy) return; busy = true;
@@ -273,32 +265,90 @@ async function enter() {
   const n = $("night-scene"); n.hidden = false; n.classList.remove("play"); void n.offsetWidth; n.classList.add("play");
   await wait(REDUCED ? 600 : 2500);
   n.hidden = true;
-  showInside();
+  openInside("walk", zone?.floor || D.floors[0].id);
   busy = false;
 }
 
-/* ---------- 手電筒：游標或手指就是光圈；沒動的時候自己慢慢晃 ---------- */
-const torch = { x: innerWidth / 2, y: innerHeight * .55, tx: innerWidth / 2, ty: innerHeight * .55, last: 0, on: false };
-function startTorch() {
-  if (torch.on) return; torch.on = true; torch.last = -9999;
-  requestAnimationFrame(torchLoop);
-}
-function torchLoop(t) {
-  if (!torch.on) return;
-  if (t - torch.last > 2200 && !REDUCED) { // 閒置：在畫面下半部慢慢掃過櫥窗
-    const k = t / 1000;
-    torch.tx = innerWidth * (.5 + Math.sin(k * .45) * .32);
-    torch.ty = innerHeight * (.62 + Math.sin(k * .9) * .08);
-  }
-  const f = REDUCED ? 1 : .12;
-  torch.x += (torch.tx - torch.x) * f; torch.y += (torch.ty - torch.y) * f;
-  const d = $("dark"); d.style.setProperty("--x", torch.x.toFixed(1) + "px"); d.style.setProperty("--y", torch.y.toFixed(1) + "px");
-  requestAnimationFrame(torchLoop);
-}
-addEventListener("pointermove", e => { torch.tx = e.clientX; torch.ty = e.clientY; torch.last = performance.now(); }, { passive: true });
-addEventListener("pointerdown", e => { torch.tx = e.clientX; torch.ty = e.clientY; torch.last = performance.now(); }, { passive: true });
+/* ---------- 四、館內：夜遊／全覽 ---------- */
+let mode = null;
+const walk = createWalk($("walk"), {
+  floors: D.floors, exhibits: D.exhibits.filter(e => e.onDisplay), reduced: REDUCED,
+  guardLine: floorId => {
+    const f = FLOOR[floorId], z = ZONES.find(z => z.floor === floorId);
+    const pool = f?.guard?.length ? f.guard : z?.lines?.length ? z.lines : [{ zh: "慢慢看，閉館前都還有時間。", en: "Take your time. We're open till dawn." }];
+    return pool[Math.floor(Math.random() * pool.length)];
+  },
+  openPlacard: (e, from) => openPlacard(e, from),
+  blocked: () => !$("placard").hidden,
+  exit: () => resetToBooth()
+});
 
-/* ---------- 展品說明牌（樓層開放後使用） ---------- */
+function openInside(m, floorId) {
+  document.body.classList.remove("at-booth");
+  document.body.classList.add("in-inside");
+  $("inside-scene").hidden = false;
+  mode = null;
+  setMode(m, floorId, true);
+}
+async function setMode(m, floorId, first = false) {
+  if (m === mode) return;
+  const veil = $("in-veil");
+  if (!first && !REDUCED) { veil.classList.add("on"); await wait(320); }
+  mode = m;
+  const sw = $("mode-switch"); sw.dataset.mode = m;
+  sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
+  if (m === "walk") {
+    $("catalog").hidden = true; $("walk").hidden = false;
+    document.body.classList.add("is-dark"); document.body.classList.remove("is-lit");
+    if (first || !walk.floor) walk.start(floorId || walk.floor || D.floors[0].id); else walk.resume();
+  } else {
+    walk.pause(); $("walk").hidden = true;
+    document.body.classList.remove("is-dark"); document.body.classList.add("is-lit");
+    renderCatalog(); $("catalog").hidden = false; $("catalog").scrollTop = 0;
+  }
+  veil.classList.remove("on");
+}
+
+/* 全覽：燈全亮的館藏目錄，依樓層分組，可以篩類型 */
+let kindFilter = "";
+function renderCatalog() {
+  const kinds = [...new Set(D.exhibits.filter(e => e.onDisplay).map(e => e.kind).filter(Boolean))];
+  const total = D.exhibits.filter(e => e.onDisplay).length;
+  const floors = D.floors.map(f => {
+    const items = D.exhibits.filter(e => e.floor === f.id && e.onDisplay);
+    if (!items.length) return "";
+    const mine = zone?.floor === f.id;
+    return `<section class="cat-floor" data-floor="${esc(f.id)}">
+      <header class="cf-head"><span class="cf-label">${esc(f.label)}</span>
+        <div class="cf-name"><h3>${esc(f.name)}${mine ? '<em class="cf-mine">你的票</em>' : ""}</h3><i>${esc(f.en)}</i></div>
+        <p class="cf-blurb">${esc(f.blurb || "")}</p></header>
+      <div class="cat-grid">${items.map(e => `<button class="cat-item${e.status === "renovating" ? " renovating" : ""}" type="button" data-id="${esc(e.id)}" data-kind="${esc(e.kind)}">
+        <span class="ci-case">${caseHTML(e)}${e.status === "renovating" ? '<span class="cloth"></span><span class="sign">整修中</span>' : ""}</span>
+        <span class="ci-plate"><b>${esc(e.title)}</b><small>${esc(e.kind)}${e.version ? `・${esc(e.version)}` : ""}</small></span></button>`).join("")}</div>
+    </section>`;
+  }).join("");
+  $("catalog").innerHTML = `<div class="cat-inner">
+    <header class="cat-head"><p class="kicker">The Collection</p><h2 class="cat-title">館藏目錄</h2>
+      <p class="cat-sub">燈全亮了。${D.floors.length} 個展區、${total} 件展品，挑一件來看。</p>
+      <div class="cat-filter" role="group" aria-label="依類型篩選">${["", ...kinds].map(k => `<button type="button" data-kind="${esc(k)}" aria-pressed="${k === kindFilter}">${esc(k || "全部")}</button>`).join("")}</div></header>
+    ${floors}
+    <footer class="cat-foot">${footHTML()}</footer></div>`;
+  applyFilter();
+}
+function applyFilter() {
+  const c = $("catalog");
+  c.querySelectorAll(".cat-filter button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.kind === kindFilter)));
+  c.querySelectorAll(".cat-item").forEach(b => b.hidden = !!kindFilter && b.dataset.kind !== kindFilter);
+  c.querySelectorAll(".cat-floor").forEach(s => s.hidden = ![...s.querySelectorAll(".cat-item")].some(b => !b.hidden));
+}
+$("catalog").addEventListener("click", ev => {
+  const k = ev.target.closest(".cat-filter button");
+  if (k) { kindFilter = k.dataset.kind; applyFilter(); return; }
+  const it = ev.target.closest(".cat-item");
+  if (it) { const e = D.exhibits.find(x => x.id === it.dataset.id); if (e) openPlacard(e, it); }
+});
+
+/* ---------- 展品說明牌 ---------- */
 let lastFocus = null;
 function openPlacard(e, from) {
   lastFocus = from || document.activeElement;
@@ -322,24 +372,16 @@ function openPlacard(e, from) {
 }
 function closePlacard() { $("placard").hidden = true; lastFocus?.focus?.({ preventScroll: true }); }
 
-/* ---------- 館內：樓層導覽（佈展中） ---------- */
-function showInside() {
-  $("dir-floors").innerHTML = D.floors.map(f => {
-    const n = D.exhibits.filter(e => e.floor === f.id).length, mine = zone && (zone.floor === f.id || !zone.floor);
-    return `<li class="${mine && zone.floor ? "mine" : ""}"><span class="df-label">${esc(f.label)}</span><span class="df-name"><b>${esc(f.name)}</b><i>${esc(f.en)}</i><small>${esc(f.blurb)}</small></span><span class="df-count">${n} 件</span></li>`;
-  }).join("");
-  $("inside-scene").hidden = false;
-}
-
 /* ---------- 回到售票口 ---------- */
 function resetToBooth() {
   ["night-scene", "ticket-scene", "inside-scene"].forEach(id => $(id).hidden = true);
-  document.body.classList.remove("is-dark"); document.body.classList.add("is-lit");
-  torch.on = false; setLamps(true);
+  walk.stop(); mode = null;
+  document.body.classList.remove("is-dark", "in-inside"); document.body.classList.add("is-lit", "at-booth");
+  setLamps(true);
   document.querySelectorAll(".lamp").forEach(l => l.classList.remove("flick"));
   $("booth").classList.remove("issuing");
   $("zones").querySelectorAll(".zone").forEach(b => b.classList.remove("on"));
-  const bs = $("booth-scene"); bs.hidden = false; bs.classList.remove("leaving");
+  const bs = $("booth-scene"); bs.hidden = false; bs.classList.remove("leaving"); bs.scrollTop = 0;
   zone = null; busy = false;
   waveZones();
 }
@@ -348,18 +390,21 @@ function toast(msg) {
   const t = $("toast"); t.textContent = msg; t.hidden = false;
   clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 2200);
 }
+function footHTML() {
+  return [`<span class="foot-name">微光博物館・引路人文創園區</span>`, ...D.footer.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`)]
+    .join('<span class="dot">·</span>');
+}
 
 /* ---------- 開始 ---------- */
-$("site-foot").innerHTML = [`<span class="foot-name">微光博物館・引路人文創園區</span>`, ...D.footer.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`)]
-  .join('<span class="dot">·</span>');
-buildLamps(); buildCases(); buildZones();
+$("site-foot").innerHTML = footHTML();
+buildZones(); buildHall();
 $("tk-go").addEventListener("click", enter);
 $("tk-save").addEventListener("click", saveTicket);
 $("tk-again").addEventListener("click", resetToBooth);
-$("dir-back").addEventListener("click", resetToBooth);
-$("skip").addEventListener("click", async () => { $("booth-scene").hidden = true; await lightsOut(true); showInside(); });
+$("hud-back").addEventListener("click", resetToBooth);
+$("mode-switch").addEventListener("click", ev => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
+$("skip").addEventListener("click", () => { $("booth-scene").hidden = true; setLamps(true); openInside("catalog"); });
 $("pl-close").addEventListener("click", closePlacard);
 $("placard").addEventListener("click", e => { if (e.target === $("placard")) closePlacard(); });
 addEventListener("keydown", e => { if (e.key === "Escape" && !$("placard").hidden) closePlacard(); });
-let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { buildLamps(); buildCases(); }, 200); });
-export { openPlacard }; // 第二步樓層會用到
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(buildLamps, 200); });

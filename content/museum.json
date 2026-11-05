@@ -5,28 +5,53 @@
       "label": "1F",
       "name": "夜間互動區",
       "en": "After Dark",
-      "blurb": "熄燈之後，這幾件展品會自己動起來。"
+      "blurb": "熄燈之後，這幾件展品會自己動起來。",
+      "alive": true,
+      "guard": [
+        {
+          "zh": "這層的展品，被光照到會自己動。",
+          "en": "The pieces on this floor move when the light finds them."
+        }
+      ]
     },
     {
       "id": "f2",
       "label": "2F",
       "name": "薪水與時間",
       "en": "Salary & Time",
-      "blurb": "每個月的數字，和三十年後的自己。"
+      "blurb": "每個月的數字，和三十年後的自己。",
+      "guard": [
+        {
+          "zh": "這裡的數字都很安靜，慢慢算。",
+          "en": "The numbers here are quiet. Take your time."
+        }
+      ]
     },
     {
       "id": "f3",
       "label": "3F",
       "name": "照見自己",
       "en": "Know Thyself",
-      "blurb": "放下老師的身分，看看鏡子裡的人。"
+      "blurb": "放下老師的身分，看看鏡子裡的人。",
+      "guard": [
+        {
+          "zh": "這層很適合一個人來。",
+          "en": "This floor is best visited alone."
+        }
+      ]
     },
     {
       "id": "shop",
       "label": "出口",
       "name": "博物館商店",
       "en": "Museum Shop",
-      "blurb": "離開前，帶一點小小的快樂回家。"
+      "blurb": "離開前，帶一點小小的快樂回家。",
+      "guard": [
+        {
+          "zh": "出口在走廊盡頭，記得帶點快樂回家。",
+          "en": "The exit is at the end. Take a little joy home."
+        }
+      ]
     }
   ],
   "exhibits": [
