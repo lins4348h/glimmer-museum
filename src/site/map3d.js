@@ -745,7 +745,7 @@ export function createMap(root, opt) {
 
   /* ---------- 每一格畫面 ---------- */
   let running = false, raf = 0, last = 0, walkT = 0, startedOnce = false, northLowered = false;
-  const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), tmp = new THREE.Vector3();
+  const camLook = new THREE.Vector3(), tmp = new THREE.Vector3();
   const SPEED = 4.8;   // 使用者嫌過走太慢
   function frame(now) {
     if (!running) return;
@@ -756,6 +756,7 @@ export function createMap(root, opt) {
       const nx = player.position.x + iv.x * SPEED * dt, nz = player.position.z + iv.y * SPEED * dt;
       if (!blocked(nx, player.position.z)) player.position.x = nx;
       if (!blocked(player.position.x, nz)) player.position.z = nz;
+      doorAssist(iv, dt);
       const want = Math.atan2(iv.x, iv.y); let d = want - player.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); player.rotation.y += d * Math.min(1, dt * 14);
       walkT += dt * 11; hideHelp();
     }
@@ -814,12 +815,29 @@ export function createMap(root, opt) {
     const aspect = W / Hh, far = aspect < 1 ? 1.35 : 1;
     // 鏡頭不要拍到館外太多：往北看到北牆就停（直式手機看得比較遠，停得早一點）
     const zMin = rooms.some(r => r.pos === "north") ? (aspect < 1 ? -9.2 : -10.6) : (aspect < 1 ? -1.5 : -2.5);
-    camLook.set(px, .4, Math.max(pz - 1.8, zMin));
-    tmp.set(camLook.x, camLook.y + 14 * far, camLook.z + 11.5 * far);
-    camPos.lerp(tmp, reduced ? 1 : Math.min(1, dt * 5)); camera.position.copy(camPos); camera.lookAt(camLook);
+    // 鏡頭只平移、永遠不轉角度：看的那一點慢慢跟上，相機固定在它的斜上方（使用者嫌過地圖跟著傾斜、頭暈）
+    tmp.set(px, .4, Math.max(pz - 1.8, zMin));
+    camLook.lerp(tmp, reduced ? 1 : Math.min(1, dt * 6));
+    placeCamera(far);
     renderer.render(scene, camera);
     placeDom(now);
     raf = requestAnimationFrame(frame);
+  }
+  // 門口引導：靠近門、往門裡走的時候，把人輕輕帶到門中間，不會卡在門框邊（使用者嫌過門口擋一下）
+  const DOORWAYS = { west: { axis: "x", at: -7.2, lat: "z", hw: 1.3 }, east: { axis: "x", at: 7.2, lat: "z", hw: 1.3 }, north: { axis: "z", at: -6.2, lat: "x", hw: 1.6 }, south: { axis: "z", at: 6.2, lat: "x", hw: 1.6 } };
+  function doorAssist(iv, dt) {
+    const P = player.position;
+    for (const r of rooms) {
+      const d = DOORWAYS[r.pos], along = P[d.axis] - d.at, lat = P[d.lat];
+      if (Math.abs(along) > 1.6 || Math.abs(lat) > d.hw + .9) continue;
+      const push = d.axis === "x" ? iv.x : iv.y;               // 往牆的方向走的力道
+      if (Math.abs(push) < .3 || Math.sign(push) !== -Math.sign(along || -push)) continue;
+      const room = d.hw - .32, want = clamp(lat, -room, room);
+      if (Math.abs(want - lat) < .001) continue;
+      const nl = lat + (want - lat) * Math.min(1, dt * 9);
+      const tx = d.lat === "x" ? nl : P.x, tz = d.lat === "z" ? nl : P.z;
+      if (!blocked(tx, tz)) P[d.lat] = nl;
+    }
   }
   function animate(c, wt, moving) {
     const u = c.userData; if (reduced) wt = 0;
@@ -876,7 +894,8 @@ export function createMap(root, opt) {
     renderer.setSize(W, Hh); camera.aspect = W / Hh; camera.fov = W < Hh ? 44 : 34; camera.updateProjectionMatrix();
   }
   addEventListener("resize", () => { if (running) resize(); });
-  function snapCamera() { const far = W / Hh < 1 ? 1.35 : 1; camPos.set(player.position.x, .4 + 14 * far, Math.max(player.position.z - 1.8, -9.2) + 11.5 * far); }
+  function placeCamera(far) { camera.position.set(camLook.x, camLook.y + 14 * far, camLook.z + 11.5 * far); camera.lookAt(camLook); }
+  function snapCamera() { const far = W / Hh < 1 ? 1.35 : 1; camLook.set(player.position.x, .4, Math.max(player.position.z - 1.8, -9.2)); placeCamera(far); }
   function loop() { cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(frame); }
 
   let warmed = false;
@@ -897,7 +916,7 @@ export function createMap(root, opt) {
       night = isNight; running = true; startedOnce = true; guardSaid = false; resize();
       player.position.set(0, 0, 4.6); player.rotation.y = Math.PI;
       for (const it of items) homeItem(it);
-      applyNight(); assignSpots(); snapCamera(); camera.position.copy(camPos); camera.lookAt(player.position); warmUp();
+      applyNight(); assignSpots(); snapCamera(); warmUp();
       curRoom = "hall"; showBanner(null); loop();
       if (!helpShown) showHelp();
     },
