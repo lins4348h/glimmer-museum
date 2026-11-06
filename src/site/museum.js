@@ -1,8 +1,9 @@
 // 微光博物館｜前台
 // 點售票窗 → 抽到今晚的一張票根（100 句隨機，可以一直抽、可存成圖）→ 進館：俯視像素地圖
-// 館內三種看法：夜遊（暗，手電筒，展品活過來）、開館（白天，有遊客，展品乖乖站好）、全覽（館藏目錄）。
+// 館內兩種看法：探索（地圖；白天有遊客、夜晚展品活過來，用日／月鈕切換）、總覽（畫廊式館藏目錄）。
 // 抽到哪一句只在瀏覽器裡用，不記錄、不送出。
 import { objectSVG } from "./objects.js";
+import { engravingSVG, hasEngraving } from "./engravings.js";
 import { createMap } from "./map.js";
 
 const D = window.MUSEUM;
@@ -60,9 +61,19 @@ function buildLamps() {
 }
 function setLamps(on) { document.querySelectorAll(".lamp").forEach(l => l.classList.toggle("off", !on)); }
 
-/* ---------- 櫥窗（說明牌、全覽共用） ---------- */
-function caseHTML(e) {
-  return `<div class="case glow-${esc(e.glow)}"><div class="case-glass"><span class="case-light"></span>${objectSVG(e.object)}</div><div class="case-base"></div></div>`;
+/* ---------- 展品圖：銅版線稿（說明牌、總覽共用）；還沒畫線稿的先用舊的物件圖 ---------- */
+function artHTML(e) { return hasEngraving(e.object) ? engravingSVG(e.object) : objectSVG(e.object); }
+// 總覽的一張藏品海報：夜色紙底＋細金框、左上編號與英文、右邊直書標題、中間線稿、左下類型・年代
+function posterHTML(e, f, i) {
+  const reno = e.status === "renovating", no = `${f.numeral || ""} – ${String(i + 1).padStart(2, "0")}`;
+  return `<button class="cat-item${reno ? " renovating" : ""}" type="button" data-id="${esc(e.id)}" data-kind="${esc(e.kind)}" aria-label="${esc(e.title)}">
+    <span class="po" style="--n:${[...e.title].length}">
+      <span class="po-no">${esc(no)}</span><span class="po-en">${esc(e.en)}</span>
+      <span class="po-title">${esc(e.title)}</span>
+      <span class="po-art">${artHTML(e)}</span>
+      <span class="po-meta">${esc(e.kind)}${e.year ? `・${esc(e.year)}` : ""}</span>
+      ${reno ? '<span class="sign">整修中</span>' : ""}
+    </span></button>`;
 }
 
 /* ---------- 一、夜間售票口：點窗口就出票 ---------- */
@@ -264,8 +275,8 @@ async function enter() {
   busy = false;
 }
 
-/* ---------- 三、館內：夜遊／開館／全覽 ---------- */
-let mode = null;
+/* ---------- 三、館內：探索（day／night）／總覽（catalog） ---------- */
+let mode = null, lastExplore = "day";
 const map = createMap($("map"), {
   floors: D.floors, exhibits: D.exhibits.filter(e => e.onDisplay), reduced: REDUCED,
   // 夜裡是夜班警衛，白天換一套台詞
@@ -290,8 +301,12 @@ async function setMode(m, first = false) {
   const veil = $("in-veil"), was = mode;
   if (!first && !REDUCED) { veil.classList.add("on"); await wait(300); }
   mode = m;
-  const sw = $("mode-switch"); sw.dataset.mode = m;
-  sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
+  if (m !== "catalog") lastExplore = m;
+  const sw = $("mode-switch"), sm = m === "catalog" ? "catalog" : "explore"; sw.dataset.mode = sm;
+  sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === sm)));
+  const dn = $("daynight"), toNight = m !== "night";
+  dn.hidden = m === "catalog"; dn.setAttribute("aria-pressed", String(m === "night"));
+  dn.title = toNight ? "熄燈，切到夜晚" : "開燈，回到白天"; dn.setAttribute("aria-label", dn.title);
   document.body.classList.toggle("is-dark", m === "night"); document.body.classList.toggle("is-lit", m !== "night");
   if (m === "catalog") {
     map.pause(); $("map").hidden = true;
@@ -305,7 +320,7 @@ async function setMode(m, first = false) {
   veil.classList.remove("on");
 }
 
-/* 全覽：燈全亮的館藏目錄，依樓層分組，可以篩類型 */
+/* 總覽：畫廊式的館藏目錄，依展廳分段，每件是一張藏品海報（線稿＋直書標題），可以篩類型 */
 let kindFilter = "";
 function renderCatalog() {
   const kinds = [...new Set(D.exhibits.filter(e => e.onDisplay).map(e => e.kind).filter(Boolean))];
@@ -317,9 +332,7 @@ function renderCatalog() {
       <header class="cf-head"><span class="cf-label">${esc(f.numeral || f.label)}</span>
         <div class="cf-name"><h3>${esc(f.name)}</h3><i>${esc(f.label)}・${esc(f.en)}</i></div>
         <p class="cf-blurb">${esc(f.blurb || "")}</p></header>
-      <div class="cat-grid">${items.map(e => `<button class="cat-item${e.status === "renovating" ? " renovating" : ""}" type="button" data-id="${esc(e.id)}" data-kind="${esc(e.kind)}">
-        <span class="ci-case">${caseHTML(e)}${e.status === "renovating" ? '<span class="cloth"></span><span class="sign">整修中</span>' : ""}</span>
-        <span class="ci-plate"><b>${esc(e.title)}</b><small>${esc(e.kind)}${e.version ? `・${esc(e.version)}` : ""}</small></span></button>`).join("")}</div>
+      <div class="cat-grid">${items.map((e, i) => posterHTML(e, f, i)).join("")}</div>
     </section>`;
   }).join("");
   $("catalog").innerHTML = `<div class="cat-inner">
@@ -352,7 +365,7 @@ function openPlacard(e, from, withQuip = false) {
   const pc = $("pl-case");
   pc.className = "pl-case" + (reno ? " renovating" : "");
   // 展品放在聚光燈下的細台座上（不用整個玻璃櫃，看起來比較精緻）
-  pc.innerHTML = objectSVG(e.object) + '<span class="pl-stand"></span>' + (reno ? '<span class="cloth"></span><span class="sign">整修中</span>' : "");
+  pc.innerHTML = artHTML(e) + '<span class="pl-stand"></span>' + (reno ? '<span class="cloth"></span><span class="sign">整修中</span>' : "");
   $("pl-floor").innerHTML = `<b>${esc(f.numeral || "")}</b>${esc(f.label || "")}・${esc(f.name || "")}`;
   $("pl-title").textContent = e.title;
   $("pl-en").textContent = e.en;
@@ -360,7 +373,7 @@ function openPlacard(e, from, withQuip = false) {
   const quip = withQuip && e.persona?.quip;
   $("pl-quip").textContent = quip ? `「${e.persona.quip}」` : "";
   $("pl-quip").hidden = !quip;
-  $("pl-meta").innerHTML = [["類型", e.kind || "—"], ["年代", e.version || "—"], ["展廳", f.label || "—"]]
+  $("pl-meta").innerHTML = [["類型", e.kind || "—"], ["年代", e.year || "—"], ["展廳", f.label || "—"]]
     .map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
   $("pl-note").textContent = e.note;
   $("pl-tags").innerHTML = e.tags.map(t => `<li>${esc(t)}</li>`).join("");
@@ -408,8 +421,10 @@ $("tk-save").addEventListener("click", saveTicket);
 $("tk-again").addEventListener("click", again);
 $("hud-back").addEventListener("click", resetToBooth);
 // 用滑鼠或手指點的，點完放掉焦點：不然按空白鍵會再按一次切換鈕，而不是看說明牌
-$("mode-switch").addEventListener("click", ev => { const b = ev.target.closest("button[data-mode]"); if (!b) return; if (ev.detail) b.blur(); setMode(b.dataset.mode); });
-$("skip").addEventListener("click", () => { $("booth-scene").hidden = true; setLamps(true); openInside("catalog"); });
+$("mode-switch").addEventListener("click", ev => { const b = ev.target.closest("button[data-mode]"); if (!b) return; if (ev.detail) b.blur(); setMode(b.dataset.mode === "catalog" ? "catalog" : lastExplore); });
+$("daynight").addEventListener("click", ev => { if (ev.detail) ev.currentTarget.blur(); setMode(mode === "night" ? "day" : "night"); });
+// 略過也是先到地圖（使用者決定：進館先探索，想快速找內容再切總覽）
+$("skip").addEventListener("click", () => { $("booth-scene").hidden = true; setLamps(true); openInside("day"); });
 $("pl-close").addEventListener("click", closePlacard);
 $("pl-done").addEventListener("click", closePlacard);
 $("leave-yes").addEventListener("click", () => { closeLeave(); resetToBooth(); });

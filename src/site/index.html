@@ -103,15 +103,21 @@
   </div>
 </section>
 
-<!-- 三、館內：夜遊（暗，手電筒）／開館（白天，有遊客）／全覽（館藏目錄） -->
+<!-- 三、館內：探索（地圖，白天／夜晚）／總覽（畫廊式館藏目錄） -->
 <section class="scene inside-scene" id="inside-scene" hidden aria-label="館內">
   <div class="in-hud">
     <button class="link-btn hud-back" id="hud-back" type="button">← 售票口</button>
-    <div class="mode-switch" id="mode-switch" role="group" aria-label="參觀方式">
-      <span class="ms-thumb" aria-hidden="true"></span>
-      <button type="button" data-mode="night" aria-pressed="false">夜遊<i>Wander</i></button>
-      <button type="button" data-mode="day" aria-pressed="true">開館<i>Daytime</i></button>
-      <button type="button" data-mode="catalog" aria-pressed="false">全覽<i>Overview</i></button>
+    <div class="hud-right">
+      <!-- 日／月：只在探索時出現，切換白天開館和夜晚（展品活過來） -->
+      <button class="daynight" id="daynight" type="button" aria-pressed="false" aria-label="熄燈，切到夜晚" title="熄燈，切到夜晚">
+        <span class="dn-sun" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.6"/><path d="M10 2.2v2.4M10 15.4v2.4M2.2 10h2.4M15.4 10h2.4M4.5 4.5l1.7 1.7M13.8 13.8l1.7 1.7M4.5 15.5l1.7-1.7M13.8 6.2l1.7-1.7"/></svg></span>
+        <span class="dn-moon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M14.6 12.9A6.4 6.4 0 0 1 7.1 5.4a6.4 6.4 0 1 0 7.5 7.5Z"/></svg></span>
+      </button>
+      <div class="mode-switch" id="mode-switch" role="group" aria-label="參觀方式" data-mode="explore">
+        <span class="ms-thumb" aria-hidden="true"></span>
+        <button type="button" data-mode="explore" aria-pressed="true">探索<i>Wander</i></button>
+        <button type="button" data-mode="catalog" aria-pressed="false">總覽<i>Gallery</i></button>
+      </div>
     </div>
   </div>
   <div class="map" id="map" hidden></div>

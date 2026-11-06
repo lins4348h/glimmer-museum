@@ -804,8 +804,8 @@ export function createMap(root, opt) {
   }
   // 操作說明跟著模式：夜裡多一句「展品會跑」
   function helpText() {
-    const tail = night ? "展品會跑，走近它就乖乖站好。" : "";
-    return coarse ? `按住畫面任一處拖曳，就能走。走近展品，按下面的按鈕看說明牌。${tail}` : `方向鍵或 WASD 走動，空白鍵看說明牌。${tail}`;
+    const tail = night ? "展品會跑，走近它就乖乖站好。" : "右上角的月亮可以熄燈。";
+    return coarse ? `按住畫面任一處拖曳，就能走。走近展品，點展櫃上方的小展牌。${tail}` : `方向鍵或 WASD 走動，空白鍵看說明牌。${tail}`;
   }
   function hideHelp() { if (help.hidden || help.classList.contains("out")) return; help.classList.add("out"); setTimeout(() => help.hidden = true, 600); }
 

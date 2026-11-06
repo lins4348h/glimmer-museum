@@ -30,7 +30,7 @@ const exhibits = data.exhibits
   .sort((a, b) => floorIds.indexOf(a.floor) - floorIds.indexOf(b.floor) || (a.order ?? 99) - (b.order ?? 99))
   .map(e => ({
     id: e.id, floor: e.floor, status: e.status, onDisplay: e.onDisplay !== false,
-    title: e.title, en: e.en || "", kind: e.kind || "", version: e.version || "",
+    title: e.title, en: e.en || "", kind: e.kind || "", version: e.version || "", year: String(e.year || ""),
     object: e.object, glow: e.glow || "gold", note: e.note || "", tags: e.tags || [], persona: e.persona || null,
     links: e.status === "open" ? (e.links || []) : []
   }));

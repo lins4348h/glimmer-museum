@@ -308,11 +308,13 @@ body.at-booth .booth-frame { animation: glass-breathe 3.2s ease-in-out infinite;
   background: radial-gradient(60% 46% at 50% 58%, rgba(255, 214, 150, .16), transparent 70%), linear-gradient(180deg, #0c1528, #15244a 70%, #0f1b36); }
 .pl-case::before { content: ""; position: absolute; left: 50%; top: 0; width: 70%; height: 82%; transform: translateX(-50%); pointer-events: none;
   background: linear-gradient(180deg, rgba(255, 226, 170, .2), rgba(255, 226, 170, 0)); clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); }
+.pl-case .engr { position: relative; z-index: 1; display: block; width: min(230px, 76%); height: auto; margin-bottom: -10px; filter: drop-shadow(0 0 18px rgba(255, 214, 140, .12)); }
 .pl-case .obj { position: relative; z-index: 1; display: block; width: min(190px, 62%); height: auto; filter: drop-shadow(0 16px 14px rgba(0, 0, 0, .55)); }
 .pl-stand { position: relative; z-index: 1; display: block; width: min(220px, 74%); height: 56px; margin-top: -4px;
   background: linear-gradient(180deg, #2a3d66 0, #1b2a4a 10%, #142140 100%);
   box-shadow: inset 0 1px 0 rgba(232, 200, 137, .7), inset 0 2px 0 rgba(212, 166, 74, .25), 0 -10px 30px rgba(255, 210, 140, .12); }
 .pl-stand::after { content: ""; position: absolute; left: 50%; top: 18px; width: 36%; height: 1px; transform: translateX(-50%); background: rgba(232, 200, 137, .5); }
+.pl-case.renovating .engr { opacity: .35; }
 .pl-case.renovating .obj { filter: blur(1px) brightness(.5); }
 .pl-case .cloth { position: absolute; left: 22%; right: 22%; bottom: 56px; height: 62%; z-index: 2; border-radius: 40% 40% 3px 3px / 22% 22% 3px 3px;
   background: repeating-linear-gradient(90deg, #6b4f2c 0 10px, #7a5c35 10px 22px); opacity: .95; box-shadow: inset 0 -20px 30px rgba(0, 0, 0, .4); }
@@ -363,6 +365,7 @@ body.at-booth .booth-frame { animation: glass-breathe 3.2s ease-in-out infinite;
   .placard-veil { padding: calc(76px + env(safe-area-inset-top, 0px)) 12px calc(96px + env(safe-area-inset-bottom, 0px)); }
   .pl-case { min-height: 0; padding: 26px 16px 0; }
   .pl-case .obj { width: min(120px, 38%); }
+  .pl-case .engr { width: min(150px, 46%); margin-bottom: -6px; }
   .pl-stand { width: min(150px, 46%); height: 34px; }
   .pl-stand::after { top: 12px; }
   .pl-case .cloth { bottom: 34px; left: 30%; right: 30%; }
