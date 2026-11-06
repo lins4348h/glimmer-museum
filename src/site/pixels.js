@@ -34,29 +34,72 @@ const put = (rows, pts) => {
 };
 const flipX = rows => rows.map(r => [...r].reverse().join(""));
 
-/* ---------- 下班的老師（16×24） ---------- */
-// 正面：頭、眼鏡、開襟毛衣；腿另外畫，才能走路
+/* ---------- 下班的老師（16×24）：大頭 Q 版，圓眼鏡、腮紅、頭頂一撮翹毛 ---------- */
+// 頭佔一半以上才可愛；腿另外畫，才能走路。手電筒、帆布包另外疊上去（白天的遊客不拿手電筒）
 const T_FRONT_TOP = mirror([
   "........",
   ".....kkk",
-  "....khhh",
-  "...khhhh",
+  "...kkhhh",
   "..khhhhh",
-  "..khhhhh",
-  "..khhhHs",
-  "..khssss",
-  "..khgkgs",
+  ".khhHHhh",
+  ".khhhhhh",
+  ".khhhhhs",
+  ".khbbbbs",
+  ".khbkwbb",
+  ".khbkkbs",
+  ".khbbbbs",
+  ".kRsssss",
   "..kSssss",
-  "...kssss",
-  "....kkks",
+  "...kkkss",
   "...kccww",
   "..kcccww",
-  "..kcCcww",
-  "..kcCcww",
   "..kscccw",
   "...kpppp",
   "...kpppp"
 ]);
+const T_BACK_TOP = mirror([
+  "........",
+  ".....kkk",
+  "...kkhhh",
+  "..khhhhh",
+  ".khhHHhh",
+  ".khhhhhh",
+  ".khhhhhh",
+  ".khhhhhh",
+  ".khhhHhh",
+  ".khhhhhh",
+  ".khhhhhh",
+  ".kHhhhhh",
+  "..khhhhh",
+  "...kkkss",
+  "...kcccc",
+  "..kccccc",
+  "..kscccc",
+  "...kpppp",
+  "...kpppp"
+]);
+// 側面（面向左）：眼鏡一個鏡片、腮紅；包在背後
+const T_SIDE_TOP = [
+  "................",
+  "......kkkkk.....",
+  "....kkhhhhhkk...",
+  "...khhhhhhhhhk..",
+  "..khhHHhhhhhhhk.",
+  "..khhhhhhhhhhhk.",
+  ".kshhhhhhhhhhhk.",
+  ".ksssshhhhhhhhk.",
+  ".kbbbbshhhhhhhk.",
+  ".kbkwbshhhhhhhk.",
+  ".kbkkbshhhhhhk..",
+  ".kbbbbsshhhhhk..",
+  ".kRsssssshhhk...",
+  "..kkksssskk.....",
+  "....kwwcccTk....",
+  "...kswcccTtk....",
+  "...kscccktttk...",
+  "....kppppktk....",
+  "....kppppkk....."
+];
 const legsFront = f => {
   // f：0 站、1 左腳抬、2 右腳抬
   const L = ["....kppk", "....kppk", "....kppk", "...kook.", "...kkkk."];
@@ -64,102 +107,52 @@ const legsFront = f => {
   const left = f === 1 ? up : L, right = f === 2 ? up : L;
   return left.map((l, i) => l + [...right[i]].reverse().join(""));
 };
-const T_FRONT_OVER = [
-  // 右手（畫面左邊）拿手電筒，往下照
-  [2, 17, "K"], [2, 18, "K"], [2, 19, "f"], [3, 17, "s"],
-  // 左肩（畫面右邊）帆布包
-  [10, 12, "T"], [11, 13, "T"], [12, 14, "T"], [12, 15, "k"], [13, 15, "k"], [14, 15, "k"],
-  [11, 16, "k"], [12, 16, "t"], [13, 16, "t"], [14, 16, "t"], [15, 16, "k"],
-  [11, 17, "k"], [12, 17, "t"], [13, 17, "T"], [14, 17, "t"], [15, 17, "k"],
-  [11, 18, "k"], [12, 18, "t"], [13, 18, "t"], [14, 18, "t"], [15, 18, "k"],
-  [12, 19, "k"], [13, 19, "k"], [14, 19, "k"]
-];
-// 背面：看到後腦勺和背上的包
-const T_BACK_TOP = mirror([
-  "........",
-  ".....kkk",
-  "....khhh",
-  "...khhhh",
-  "..khhhhh",
-  "..khhhhh",
-  "..khhhhh",
-  "..khhhhh",
-  "..khhhHH",
-  "..kHhhhh",
-  "...khhhh",
-  "....kkks",
-  "...kcccc",
-  "..kccccc",
-  "..kcCccc",
-  "..kcCccc",
-  "..kscccc",
-  "...kpppp",
-  "...kpppp"
-]);
-const T_BACK_OVER = [
-  [12, 12, "T"], [11, 13, "T"], [10, 14, "T"], [9, 15, "k"], [10, 15, "k"], [11, 15, "k"], [12, 15, "k"],
-  [8, 16, "k"], [9, 16, "t"], [10, 16, "t"], [11, 16, "t"], [12, 16, "k"],
-  [8, 17, "k"], [9, 17, "T"], [10, 17, "t"], [11, 17, "T"], [12, 17, "k"],
-  [9, 18, "k"], [10, 18, "k"], [11, 18, "k"],
-  [13, 16, "s"], [13, 17, "K"], [13, 18, "K"]
-];
-// 側面（面向左）：手電筒往前照，包在背後
-const T_SIDE_TOP = [
-  "................",
-  "......kkkkk.....",
-  ".....khhhhhk....",
-  "....khhhhhhhk...",
-  "...khhhhhhhhhk..",
-  "...khhhhhhhhhk..",
-  "...kHsshhhhhhk..",
-  "..kssssshhhhk...",
-  "..ksgkgsshhhk...",
-  "..kssssssshk....",
-  "...kSsssshk.....",
-  "....kkksskk.....",
-  "....kwwccck.....",
-  "...kcwcccccTk...",
-  "..kscccccccTtk..",
-  ".kKscCcccckttk..",
-  ".fKkcCccccktTk..",
-  "...kcccccckttk..",
-  "....kppppp.kk...",
-  "....kppppk......"
-];
 const legsSide = f => f === 0
   ? ["....kppk........", "....kppk........", "....kppk........", "...koook........", "...kkkkk........"]
   : f === 1
     ? ["...kppkpk.......", "..kppk.kpk......", "..kppk..kpk.....", ".kook...kook....", ".kkkk...kkkk...."]
     : ["....kpppk.......", "....kppk........", "...kppkpk.......", "..kook.kook.....", "..kkkk.kkkk....."];
+// 頭頂一撮翹毛
+const TUFT = [[9, 0, "k"], [10, 0, "k"], [11, 1, "k"]];
+const TUFT_SIDE = [[9, 0, "k"], [10, 0, "k"], [11, 1, "k"]];
+// 老師的招牌：頭髮上一個金色星星髮夾
+const CLIP_FRONT = [[11, 4, "G"], [12, 4, "g"], [11, 5, "g"], [12, 3, "g"]];
+const CLIP_SIDE = [[9, 4, "G"], [10, 4, "g"], [9, 5, "g"], [10, 3, "g"]];
+// 帆布包：正面在畫面右邊、背面在畫面左邊
+const BAG_FRONT = [[10, 14, "T"], [11, 15, "T"], [12, 16, "k"], [13, 16, "k"], [14, 16, "k"], [15, 16, "k"],
+  [12, 17, "k"], [13, 17, "t"], [14, 17, "t"], [15, 17, "k"], [12, 18, "k"], [13, 18, "T"], [14, 18, "t"], [15, 18, "k"],
+  [12, 19, "k"], [13, 19, "t"], [14, 19, "t"], [15, 19, "k"], [12, 20, "k"], [13, 20, "k"], [14, 20, "k"], [15, 20, "k"]];
+const BAG_BACK = BAG_FRONT.map(([x, y, c]) => [15 - x, y, c]);
+// 手電筒：正面右手往下照、背面看得到機身、側面往前照
+const FLASH_FRONT = [[3, 17, "K"], [3, 18, "K"], [3, 19, "f"]];
+const FLASH_BACK = [[12, 17, "K"], [12, 18, "K"], [12, 19, "K"]];
+const FLASH_SIDE = [[2, 16, "K"], [1, 16, "f"]];
 
-function teacher() {
+// glasses：留著圓眼鏡（b 鏡框）；不戴就把鏡框換成皮膚
+function person(flash, glasses, clip) {
   const out = {};
+  const face = rows => glasses ? rows : rows.map((r, y) => y >= 7 && y <= 11 ? r.replace(/b/g, "s") : r);
   for (const f of [0, 1, 2]) {
-    out["down" + f] = put([...T_FRONT_TOP, ...legsFront(f)], T_FRONT_OVER);
-    out["up" + f] = put([...T_BACK_TOP, ...legsFront(f)], T_BACK_OVER);
-    out["left" + f] = [...T_SIDE_TOP, ...legsSide(f)];
+    out["down" + f] = put([...face(T_FRONT_TOP), ...legsFront(f)], [...TUFT, ...BAG_FRONT, ...(flash ? FLASH_FRONT : []), ...(clip ? CLIP_FRONT : [])]);
+    out["up" + f] = put([...T_BACK_TOP, ...legsFront(f)], [...TUFT, ...BAG_BACK, ...(flash ? FLASH_BACK : []), ...(clip ? CLIP_FRONT.map(([x, y, c]) => [15 - x, y, c]) : [])]);
+    out["left" + f] = put([...face(T_SIDE_TOP), ...legsSide(f)], [...TUFT_SIDE, ...(flash ? FLASH_SIDE : []), ...(clip ? CLIP_SIDE : [])]);
     out["right" + f] = flipX(out["left" + f]);
   }
   return out;
 }
-export const TEACHER = teacher();
+// 主角：大眼睛、腮紅、星星髮夾、手電筒、帆布包（使用者嫌之前「太像路人」）
+export const TEACHER = person(true, false, true);
 
-/* ---------- 白天的遊客：從老師換顏色、拿掉手電筒；小孩矮一點 ---------- */
+/* ---------- 白天的遊客：跟老師同一個 Q 版身形，換顏色、不拿手電筒；小孩矮一點 ---------- */
 // o：hair／hairS 頭髮、coat／coatS 上衣、pants 褲子、bag／bagS 包、glasses 眼鏡、kid 小孩
 export function visitor(o) {
   const swap = { h: o.hair, H: o.hairS, c: o.coat, C: o.coatS, p: o.pants, t: o.bag, T: o.bagS };
   const out = {};
-  for (const [k, rows] of Object.entries(TEACHER)) {
+  for (const [k, rows] of Object.entries(person(false, !!o.glasses, false))) {
     let g = rows.map(r => [...r].map(ch => swap[ch] || ch));
-    // 拿掉手電筒（K 機身、f 鏡頭）
-    g = g.map(r => r.map(ch => ch === "f" ? "." : ch));
-    if (k.startsWith("down")) { g[17][2] = "."; g[18][2] = "."; }
-    if (k.startsWith("up")) { g[17][13] = "."; g[18][13] = "."; }
-    if (k.startsWith("left") || k.startsWith("right")) g = g.map((r, y) => y === 15 || y === 16 ? r.map((ch, x) => ch === "K" ? "." : ch) : r);
-    if (!o.glasses && (k.startsWith("down") || k.startsWith("left") || k.startsWith("right"))) g = g.map((r, y) => y === 8 ? r.map(ch => ch === "g" ? "s" : ch) : r);
     let rr = g.map(r => r.join(""));
-    // 小孩：身體短兩排、腿短一排
-    if (o.kid) rr = rr.filter((_, y) => y !== 13 && y !== 15 && y !== 19);
+    // 小孩：身體短一排、褲子短一排、腿短一排
+    if (o.kid) rr = rr.filter((_, y) => y !== 15 && y !== 17 && y !== 20);
     out[k] = rr;
   }
   return out;

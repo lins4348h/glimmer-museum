@@ -415,12 +415,12 @@ export function createMap(root, opt) {
   const exitSign = document.createElement("span"); exitSign.className = "m-sign m-exit"; exitSign.innerHTML = "出口<i>EXIT</i>";
   layer.appendChild(exitSign); signs.push({ el: exitSign, x: (EXIT.x + 1) * T, y: EXIT.y * T - 8 });
   const bubbles = [];
-  function say(who, text, ms = 3200) {
+  function say(who, text, ms = 2600) {
     // 同一時間只說一句：新的說話，舊的先收起來，泡泡才不會疊在一起
     for (const o of bubbles) if (o.who !== who) { o.until = 0; o.el.hidden = true; }
     let b = bubbles.find(b => b.who === who);
     if (!b) { b = { who, el: document.createElement("p") }; b.el.className = "m-bubble"; layer.appendChild(b.el); bubbles.push(b); }
-    b.el.innerHTML = text; b.until = performance.now() + ms; b.el.hidden = false;
+    b.el.innerHTML = text; b.until = performance.now() + ms; b.el.hidden = false; b.side = null;   // 上或下，出現時決定一次
     b.el.classList.remove("in"); void b.el.offsetWidth; b.el.classList.add("in");
   }
 
@@ -485,9 +485,9 @@ export function createMap(root, opt) {
       if (d < 30) s.near = true;
       else if (s.near && d > 44) { s.near = false; s.pose = 1 - s.pose; }
     }
-    // 警衛
+    // 警衛（只說中文，使用者要求）
     const gd = Math.hypot(p.x - GUARD_AT.x, p.y - GUARD_AT.y);
-    if (gd < 40 && !update.guardOn) { update.guardOn = true; const l = opt.guardLine(night); say("guard", `<b>${night ? "夜班警衛" : "警衛"}</b>${esc(l.zh)}${l.en ? `<i>${esc(l.en)}</i>` : ""}`, 4200); }
+    if (gd < 40 && !update.guardOn) { update.guardOn = true; const l = opt.guardLine(night); say("guard", `<b>${night ? "夜班警衛" : "警衛"}</b>${esc(l.zh)}`, 3200); }
     else if (gd > 70) update.guardOn = false;
     // 鏡頭：跟著人，小地圖置中
     const mw = MW * T, mh = MH * T;
@@ -766,13 +766,15 @@ export function createMap(root, opt) {
       if (b.who === "guard") { X = GUARD_AT.x; up = GUARD_AT.y - 26; down = GUARD_AT.y + 4; foot = GUARD_AT.y; }
       else if (b.who === "dino") { X = dino.x; up = dino.y - 30; down = dino.y + 6; foot = dino.y; }
       else { const it = items.find(i => "item" + i.e.id === b.who); X = it.x; up = it.y - 24; down = it.y + (it.state === "home" ? 18 : 4); foot = it.state === "home" ? it.look.y : it.y; id = it.e.id; }
-      if (Math.hypot(p.x - X, p.y - foot) > 96) { b.until = 0; b.el.hidden = true; continue; }
+      if (Math.hypot(p.x - X, p.y - foot) > 60) { b.until = 0; b.el.hidden = true; continue; }
       const bw = b.el.offsetWidth, bh = b.el.offsetHeight;
       const sx = (X - cx) * S, sd = (down - cy) * S;
       // 同一件展品上方已經有小展牌：泡泡疊在小展牌上面
       let su = (up - cy) * S;
       if (id && near?.kind === "item" && near.it.e.id === id && tagTop !== null) su = tagTop - 2;
-      const below = su - bh - 8 < TOP;
+      // 放上面還是下面，只在剛出現時決定，之後不換邊（不然會跳來跳去）
+      if (b.side === null) b.side = su - bh - 8 < TOP ? "below" : "above";
+      const below = b.side === "below";
       const left = clamp(sx - bw / 2, 8, Math.max(8, W - 8 - bw));
       const top = clamp(below ? sd + 10 : su - bh - 8, TOP, Math.max(TOP, H - bh - 8));
       b.el.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;

@@ -2,7 +2,8 @@
 // 1. 檢查資料，有錯就停下來，網站維持上一版
 // 2. 只放公開的展品（草稿不出現在網站上），資料嵌進首頁
 // 3. 複製前台檔案
-import { readFile, writeFile, mkdir, rm, cp } from "node:fs/promises";
+import { readFile, writeFile, mkdir, rm, cp, readdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { OBJECTS } from "./src/site/objects.js";
 
 const OUT = "dist";
@@ -38,7 +39,19 @@ const payload = { floors: data.floors, exhibits, admission: data.admission, guar
 await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
 await cp("src/site", OUT, { recursive: true });
+// 版本號：所有前台檔案的內容算一個雜湊，加在 css／js 網址後面。
+// 不然手機可能拿到「新的首頁＋快取裡舊的程式」，對不上就壞掉（使用者遇過說明牌跳不出來）
+const files = (await readdir("src/site")).filter(f => /\.(js|css)$/.test(f));
+const hash = createHash("sha1");
+for (const f of files.sort()) hash.update(await readFile(`src/site/${f}`));
+hash.update(JSON.stringify(payload));
+const V = hash.digest("hex").slice(0, 8);
+for (const f of files.filter(f => f.endsWith(".js"))) {
+  const js = (await readFile(`src/site/${f}`, "utf8")).replace(/from "\.\/([\w-]+\.js)"/g, `from "./$1?v=${V}"`);
+  await writeFile(`${OUT}/${f}`, js);
+}
 const html = (await readFile("src/site/index.html", "utf8"))
+  .replace(/(href|src)="([\w-]+\.(?:css|js))"/g, `$1="$2?v=${V}"`)
   .replace("/*MUSEUM_DATA*/null", JSON.stringify(payload).replace(/</g, "\\u003c"));
 await writeFile(`${OUT}/index.html`, html);
 await writeFile(`${OUT}/_headers`, [

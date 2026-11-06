@@ -351,7 +351,8 @@ function openPlacard(e, from, withQuip = false) {
   const f = FLOOR[e.floor] || {}, reno = e.status === "renovating";
   const pc = $("pl-case");
   pc.className = "pl-case" + (reno ? " renovating" : "");
-  pc.innerHTML = caseHTML(e) + (reno ? '<span class="cloth"></span><span class="sign">整修中</span>' : "");
+  // 展品放在聚光燈下的細台座上（不用整個玻璃櫃，看起來比較精緻）
+  pc.innerHTML = objectSVG(e.object) + '<span class="pl-stand"></span>' + (reno ? '<span class="cloth"></span><span class="sign">整修中</span>' : "");
   $("pl-floor").innerHTML = `<b>${esc(f.numeral || "")}</b>${esc(f.label || "")}・${esc(f.name || "")}`;
   $("pl-title").textContent = e.title;
   $("pl-en").textContent = e.en;
