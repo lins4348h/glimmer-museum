@@ -270,12 +270,12 @@ async function enter() {
   const t = $("ticket-scene");
   if (!REDUCED) { t.classList.add("leaving"); await wait(420); }
   t.hidden = true; t.classList.remove("leaving");
-  openInside("day");   // 預設是白天開館（使用者決定）；想看展品活過來，切到夜遊
+  openInside("night");   // 預設是夜晚探索（使用者決定：夜晚做得漂亮、比較有趣）；右上角的太陽切回白天
   busy = false;
 }
 
 /* ---------- 三、館內：探索（day／night）／總覽（catalog） ---------- */
-let mode = null, lastExplore = "day";
+let mode = null, lastExplore = "night";
 // 3D 館內地圖很大（three.js 約 750 KB），進館時才載入；在售票口就先在背景抓檔案
 let map = null, mapReady = null;
 const MAP_OPTS = {
@@ -441,7 +441,7 @@ $("hud-back").addEventListener("click", resetToBooth);
 $("mode-switch").addEventListener("click", ev => { const b = ev.target.closest("button[data-mode]"); if (!b) return; if (ev.detail) b.blur(); setMode(b.dataset.mode === "catalog" ? "catalog" : lastExplore); });
 $("daynight").addEventListener("click", ev => { if (ev.detail) ev.currentTarget.blur(); setMode(mode === "night" ? "day" : "night"); });
 // 略過也是先到地圖（使用者決定：進館先探索，想快速找內容再切總覽）
-$("skip").addEventListener("click", () => { $("booth-scene").hidden = true; setLamps(true); openInside("day"); });
+$("skip").addEventListener("click", () => { $("booth-scene").hidden = true; setLamps(true); openInside("night"); });
 $("pl-close").addEventListener("click", closePlacard);
 $("pl-done").addEventListener("click", closePlacard);
 $("leave-yes").addEventListener("click", () => { closeLeave(); resetToBooth(); });
