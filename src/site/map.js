@@ -417,20 +417,14 @@ export function createMap(root, opt) {
   const bubbles = [];
   let guardSaid = false;
   // 對話泡泡（使用者決定）：說話那一刻定位在說話的人頭上，之後釘在地圖上不跟著跑，
-  // 時間到自己淡出；跟人走多遠無關。同一時間只有一個。
-  const TAG_H = 46;   // 展品泡泡先讓出小展牌的高度（螢幕像素），小展牌出不出現，泡泡都不用移動
+  // 時間到或人走開就淡出。同一時間只有一個。只有警衛和恐龍會說話：展品不放泡泡（使用者決定），自白只在說明牌上。
   function say(who, text, ms = 2600) {
     for (const o of bubbles) if (o.who !== who) { o.until = 0; o.el.hidden = true; }
     let b = bubbles.find(b => b.who === who);
     if (!b) { b = { who, el: document.createElement("p") }; b.el.className = "m-bubble"; layer.appendChild(b.el); bubbles.push(b); }
     let a;
-    if (who === "guard") a = { x: GUARD_AT.x, up: GUARD_AT.y - 26, down: GUARD_AT.y + 4, fy: GUARD_AT.y, tag: false };
-    else if (who === "dino") a = { x: Math.round(dino.x), up: Math.round(dino.y) - 30, down: Math.round(dino.y) + 6, fy: Math.round(dino.y), tag: false };
-    else {
-      // 展品被抓到時已經回到台座：泡泡在展櫃（和小展牌）上方；放不下時改放到小展牌下面
-      const it = items.find(i => "item" + i.e.id === who);
-      a = { x: it.home.x, up: it.ty * T - 13, down: it.look.y + 6, fy: it.look.y, tag: true };
-    }
+    if (who === "guard") a = { x: GUARD_AT.x, up: GUARD_AT.y - 26, down: GUARD_AT.y + 4, fy: GUARD_AT.y };
+    else a = { x: Math.round(dino.x), up: Math.round(dino.y) - 30, down: Math.round(dino.y) + 6, fy: Math.round(dino.y) };
     Object.assign(b, a, { side: null });   // 上或下，出現時決定一次
     b.el.innerHTML = text; b.until = performance.now() + ms; b.el.hidden = false;
     b.el.classList.remove("in", "out"); void b.el.offsetWidth; b.el.classList.add("in");
@@ -525,8 +519,7 @@ export function createMap(root, opt) {
       const dx = it.home.x - it.x, dy = it.home.y - it.y, l = Math.hypot(dx, dy);
       if (l < 2) {
         it.x = it.home.x; it.y = it.home.y; it.state = "home"; it.vx = 0; it.wait = rnd(3, 6);
-        // 被抓到了：跑回台座裝死，順便說一句
-        if (it.e.persona?.quip && d < 90) say("item" + it.e.id, esc(it.e.persona.quip), 3400);
+        // 被抓到了：跑回台座裝死（不說話；自白寫在夜遊的說明牌上）
         return;
       }
       it.vx = dx / l; const sp = Math.max(130, it.speed * 2.6);
@@ -784,7 +777,7 @@ export function createMap(root, opt) {
       b.el.classList.toggle("out", b.until - now < 450);
       const bw = b.el.offsetWidth, bh = b.el.offsetHeight;
       const sx = (b.x - cx) * S;
-      const su = (b.up - cy) * S - (b.tag ? TAG_H : 0), sd = (b.down - cy) * S + (b.tag ? TAG_H : 0);
+      const su = (b.up - cy) * S, sd = (b.down - cy) * S;
       // 放上面還是下面，只在剛出現時決定，之後不換邊（不然會跳來跳去）
       if (b.side === null) b.side = su - bh - 8 < TOP ? "below" : "above";
       const below = b.side === "below";
