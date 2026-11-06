@@ -77,7 +77,7 @@ body.is-lit .in-hud { background: linear-gradient(180deg, rgba(10, 18, 36, .94),
   background: #0a1222; box-shadow: 1px 1px 0 rgba(232, 200, 137, .45); }
 .m-bubble.in { animation: pop .3s ease both; }
 /* 時間到自己淡出 */
-.m-bubble { transition: opacity .45s ease; }
+.m-bubble { transition: opacity .22s ease; }
 .m-bubble.out { opacity: 0; }
 /* 放在說話的人下面時，小尾巴改到上緣 */
 .m-bubble.below::after { top: 0; box-shadow: -1px -1px 0 rgba(232, 200, 137, .45); }

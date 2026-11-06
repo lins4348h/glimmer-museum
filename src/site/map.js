@@ -424,12 +424,12 @@ export function createMap(root, opt) {
     let b = bubbles.find(b => b.who === who);
     if (!b) { b = { who, el: document.createElement("p") }; b.el.className = "m-bubble"; layer.appendChild(b.el); bubbles.push(b); }
     let a;
-    if (who === "guard") a = { x: GUARD_AT.x, up: GUARD_AT.y - 26, down: GUARD_AT.y + 4, tag: false };
-    else if (who === "dino") a = { x: Math.round(dino.x), up: Math.round(dino.y) - 30, down: Math.round(dino.y) + 6, tag: false };
+    if (who === "guard") a = { x: GUARD_AT.x, up: GUARD_AT.y - 26, down: GUARD_AT.y + 4, fy: GUARD_AT.y, tag: false };
+    else if (who === "dino") a = { x: Math.round(dino.x), up: Math.round(dino.y) - 30, down: Math.round(dino.y) + 6, fy: Math.round(dino.y), tag: false };
     else {
       // 展品被抓到時已經回到台座：泡泡在展櫃（和小展牌）上方；放不下時改放到小展牌下面
       const it = items.find(i => "item" + i.e.id === who);
-      a = { x: it.home.x, up: it.ty * T - 13, down: it.look.y + 6, tag: true };
+      a = { x: it.home.x, up: it.ty * T - 13, down: it.look.y + 6, fy: it.look.y, tag: true };
     }
     Object.assign(b, a, { side: null });   // 上或下，出現時決定一次
     b.el.innerHTML = text; b.until = performance.now() + ms; b.el.hidden = false;
@@ -590,6 +590,7 @@ export function createMap(root, opt) {
   }
   function interact() {
     if (!near || opt.blocked()) return;
+    for (const b of bubbles) { b.until = 0; b.el.hidden = true; }   // 打開說明牌就把泡泡收掉
     if (near.kind === "item") opt.openPlacard(near.it.e, act, night);   // 自白只在夜裡出現
     else opt.exit();
   }
@@ -778,6 +779,8 @@ export function createMap(root, opt) {
     for (const b of bubbles) {
       if (b.el.hidden) continue;
       if (b.until < now) { b.el.hidden = true; continue; }
+      // 人走開了（離說話的地方約 56 像素）：馬上淡掉，不留在畫面上（使用者嫌過延遲）
+      if (b.until - now > 220 && Math.hypot(p.x - b.x, p.y - b.fy) > 56) b.until = now + 220;
       b.el.classList.toggle("out", b.until - now < 450);
       const bw = b.el.offsetWidth, bh = b.el.offsetHeight;
       const sx = (b.x - cx) * S;
