@@ -883,7 +883,7 @@ export function createMap(root, opt) {
     // 在哪一廳：上方浮出廳名
     const here = rooms.find(r => px > r.x0 && px < r.x1 && pz > r.z0 && pz < r.z1) || null;
     const key = here ? here.pos : "hall";
-    // 走進一廳，上方浮出廳名（墊一塊半透明深色底，跟後牆的大字疊到也讀得清楚）
+    // 走進一廳，上方浮出廳名（不加底色，使用者嫌半透明底醜）
     if (key !== curRoom) { curRoom = key; showBanner(here); }
     // 大廳的北牆、南牆：人走到牆的北邊時，牆在人和鏡頭中間，降成矮牆
     for (const w of xWalls) { const lower = pz < w.z - .1; if (lower !== w.lowered) { w.lowered = lower; w.full.visible = !lower; w.low.visible = lower; } }
