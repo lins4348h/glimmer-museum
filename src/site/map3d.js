@@ -133,25 +133,25 @@ export function createMap(root, opt) {
   function blocked(x, z, r = .22) {
     for (const [a, b, c, d] of solids) if (x + r > a && x - r < c && z + r > b && z - r < d) return true;
     for (const [cx, cz, cr] of circles) if (Math.hypot(x - cx, z - cz) < cr + r) return true;
+    if (DW.off && Math.hypot(x - DW.cx, z - DW.cz) < 1.1 + r) return true;   // 下台散步的恐龍
     return !inside(x, z, r);
   }
 
-  /* ---------- 平面：一整棟長方形博物館（使用者要求：不要有黑色空地、展廳要大） ---------- */
-  // 中間：北＝理財廳、中＝大廳、南＝商店；兩側是長長的翼廳：西＝遊戲廳、東＝測驗廳。
-  // floors 依序放西、北、東、南。內牆厚 .4，大廳 x -7..7、z -6..5。
-  const H = 3, LOW = .5;
-  const HALL = { x0: -7, x1: 7, z0: -6, z1: 5, cz: -.5 };
-  const OUT = { x0: -19, x1: 19, z0: -16, z1: 12 };
+  /* ---------- 平面：一整棟長方形博物館（使用者要求：不要有黑色空地） ---------- */
+  // 中間由北到南：理財廳、大廳（放大，恐龍夜裡會下來走）、商店；兩側是窄一點的翼廳：西＝遊戲廳、東＝測驗廳。
+  // 使用者嫌過翼廳太大、作品沒那麼多會很空，所以大廳放大、翼廳縮小。floors 依序放西、北、東、南。內牆厚 .4。
+  const H = 3, LOW = .5, HX = 10;   // HX：大廳半寬
+  const HALL = { x0: -HX, x1: HX, z0: -8, z1: 4.6, cz: -1.7 };
+  const OUT = { x0: -18, x1: 18, z0: -14, z1: 10 };
   const SLOTS = {
-    west: { x0: -19, x1: -7.4, z0: -16, z1: 12, floor: "stars", wall: 0x23392f, base: 0x182a22 },
-    north: { x0: -7, x1: 7, z0: -16, z1: -6.4, floor: "parquet", wall: 0x1d2b4f, base: 0x14203c },
-    east: { x0: 7.4, x1: 19, z0: -16, z1: 12, floor: "slate", wall: 0x4a2329, base: 0x35181d },
-    south: { x0: -7, x1: 7, z0: 5.4, z1: 12, floor: "oak", wall: 0xefe6d6, base: 0x8a6440 }
+    west: { x0: OUT.x0, x1: -HX - .4, z0: OUT.z0, z1: OUT.z1, floor: "stars", wall: 0x23392f, base: 0x182a22 },
+    north: { x0: -HX, x1: HX, z0: OUT.z0, z1: HALL.z0 - .4, floor: "parquet", wall: 0x1d2b4f, base: 0x14203c },
+    east: { x0: HX + .4, x1: OUT.x1, z0: OUT.z0, z1: OUT.z1, floor: "slate", wall: 0x4a2329, base: 0x35181d },
+    south: { x0: -HX, x1: HX, z0: HALL.z1 + .4, z1: OUT.z1, floor: "oak", wall: 0xefe6d6, base: 0x8a6440 }
   };
   const POS = ["west", "north", "east", "south"];
   const rooms = floors.slice(0, 4).map((f, i) => ({ f, pos: POS[i], ...SLOTS[POS[i]] }));
-  const roomAt = pos => rooms.find(r => r.pos === pos);
-  // 能走的範圍就是整棟樓；隔間靠牆（solids）擋。不再另外判斷門口，才不會有縫隙變成空氣牆
+  // 能走的範圍就是整棟樓；隔間靠牆（solids）擋，不另外判斷門口（之前門口有縫，變成空氣牆）
   const inside = (x, z, r) => x - r >= OUT.x0 && x + r <= OUT.x1 && z - r >= OUT.z0 && z + r <= OUT.z1;
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), std(0xd6d1c7, { roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.position.y = -.02; ground.receiveShadow = true; scene.add(ground);
   function floorPlane(a, kind, rough) {
@@ -161,9 +161,8 @@ export function createMap(root, opt) {
     m.rotation.x = -Math.PI / 2; m.position.set((a.x0 + a.x1) / 2, 0, (a.z0 + a.z1) / 2); m.receiveShadow = true; scene.add(m);
   }
   floorPlane(HALL, "marble", .22);
-  for (const [k, sl] of Object.entries(SLOTS)) floorPlane(sl, sl.floor, sl.floor === "stars" ? .95 : sl.floor === "parquet" ? .5 : .4);
-  // 門口（牆的厚度那一段）鋪大理石
-  for (const [a, b, c, d] of [[-7.4, HALL.cz - 1.3, -7, HALL.cz + 1.3], [7, HALL.cz - 1.3, 7.4, HALL.cz + 1.3], [-1.6, -6.4, 1.6, -6], [-1.6, 5, 1.6, 5.4]]) floorPlane({ x0: a, x1: c, z0: b, z1: d }, "marble", .22);
+  for (const sl of Object.values(SLOTS)) floorPlane(sl, sl.floor, sl.floor === "stars" ? .95 : sl.floor === "parquet" ? .5 : .4);
+  for (const [a, b, c, d] of [[-HX - .4, HALL.cz - 1.3, -HX, HALL.cz + 1.3], [HX, HALL.cz - 1.3, HX + .4, HALL.cz + 1.3], [-1.6, HALL.z0 - .4, 1.6, HALL.z0], [-1.6, HALL.z1, 1.6, HALL.z1 + .4]]) floorPlane({ x0: a, x1: c, z0: b, z1: d }, "marble", .22);
 
   // 牆：灰泥牆面＋踢腳板＋牆頂淺石材
   const wallMat = {}; const matFor = c => wallMat[c] ||= std(c, { roughness: .92 });
@@ -175,36 +174,37 @@ export function createMap(root, opt) {
     if (h > 1.2) box(w + .05, .1, d + .05, M.cap, cx, h - .1, cz, { shadow: false, parent });
     box(w + .07, .05, d + .07, M.cap, cx, h, cz, { shadow: false, parent });
   }
-  // 牆面上一層薄薄的顏色（同一道牆兩面不同顏色時用）
   const skin = (x0, z0, x1, z1, color, parent = scene, h = H - .02) => box(Math.abs(x1 - x0) || .02, h, Math.abs(z1 - z0) || .02, matFor(color), (x0 + x1) / 2, 0, (z0 + z1) / 2, { shadow: false, parent });
   const col = pos => SLOTS[pos];
   // 外牆：北面三段各自的顏色、西東兩面、南面切低
-  wall(-19.4, -16.4, -7.4, -16, { color: col("west").wall, base: col("west").base });
-  wall(-7.4, -16.4, 7.4, -16, { color: col("north").wall, base: col("north").base });
-  wall(7.4, -16.4, 19.4, -16, { color: col("east").wall, base: col("east").base });
-  wall(-19.4, -16, -19, 12.4, { color: col("west").wall, base: col("west").base });
-  wall(19, -16, 19.4, 12.4, { color: col("east").wall, base: col("east").base });
-  wall(-19.4, 12, 19.4, 12.4, { h: LOW });
+  const OX = OUT.x1 + .4, OZ0 = OUT.z0 - .4, OZ1 = OUT.z1 + .4;
+  wall(-OX, OZ0, -HX - .4, OUT.z0, { color: col("west").wall, base: col("west").base });
+  wall(-HX - .4, OZ0, HX + .4, OUT.z0, { color: col("north").wall, base: col("north").base });
+  wall(HX + .4, OZ0, OX, OUT.z0, { color: col("east").wall, base: col("east").base });
+  wall(-OX, OUT.z0, OUT.x0, OZ1, { color: col("west").wall, base: col("west").base });
+  wall(OUT.x1, OUT.z0, OX, OZ1, { color: col("east").wall, base: col("east").base });
+  wall(-OX, OUT.z1, OX, OZ1, { h: LOW });
   // 翼廳與中間的隔牆（中間開門通大廳），翼廳那面刷翼廳的顏色，理財廳那面刷墨藍
   for (const s of [-1, 1]) {
-    const x0 = s < 0 ? -7.4 : 7, x1 = s < 0 ? -7 : 7.4, wing = col(s < 0 ? "west" : "east");
-    wall(x0, -16, x1, HALL.cz - 1.3); wall(x0, HALL.cz + 1.3, x1, 12);
+    const x0 = s < 0 ? -HX - .4 : HX, x1 = s < 0 ? -HX : HX + .4, wing = col(s < 0 ? "west" : "east");
+    wall(x0, OUT.z0, x1, HALL.cz - 1.3); wall(x0, HALL.cz + 1.3, x1, OUT.z1);
     box(.4, H - 1, 2.6, M.wallW, (x0 + x1) / 2, H - 1, HALL.cz);   // 門楣
-    const wf = s < 0 ? x0 - .01 : x1 + .01;   // 翼廳那一面
-    skin(wf, -16, wf, HALL.cz - 1.3, wing.wall); skin(wf, HALL.cz + 1.3, wf, 12, wing.wall);
-    const nf = s < 0 ? x1 + .01 : x0 - .01;   // 中間那一面：理財廳段刷墨藍
-    skin(nf, -16, nf, -6.4, col("north").wall);
+    const wf = s < 0 ? x0 - .01 : x1 + .01;
+    skin(wf, OUT.z0, wf, HALL.cz - 1.3, wing.wall); skin(wf, HALL.cz + 1.3, wf, OUT.z1, wing.wall);
+    const nf = s < 0 ? x1 + .01 : x0 - .01;
+    skin(nf, OUT.z0, nf, HALL.z0 - .4, col("north").wall);
   }
-  // 大廳的北牆、南牆：人走到牆的另一邊（北邊）時，這道牆在人和鏡頭中間，要降成矮牆
+  // 大廳的北牆、南牆：人走到牆的北邊時，這道牆在人和鏡頭中間，要降成矮牆
   const xWalls = [];
-  function xWall(z0, z1, { plaqueGroup = null } = {}) {
+  function xWall(z0, z1) {
     const full = new THREE.Group(), low = new THREE.Group(); scene.add(full, low); low.visible = false;
-    wall(-7, z0, -1.6, z1, { parent: full }); wall(1.6, z0, 7, z1, { parent: full }); box(3.2, 1, .4, M.wallW, 0, H - 1, (z0 + z1) / 2, { parent: full });
-    wall(-7, z0, -1.6, z1, { h: LOW, parent: low, solid: false }); wall(1.6, z0, 7, z1, { h: LOW, parent: low, solid: false });
+    wall(-HX, z0, -1.6, z1, { parent: full }); wall(1.6, z0, HX, z1, { parent: full }); box(3.2, 1, .4, M.wallW, 0, H - 1, (z0 + z1) / 2, { parent: full });
+    wall(-HX, z0, -1.6, z1, { h: LOW, parent: low, solid: false }); wall(1.6, z0, HX, z1, { h: LOW, parent: low, solid: false });
     const w = { z: (z0 + z1) / 2, full, low, lowered: false }; xWalls.push(w); return w;
   }
-  const hallN = xWall(-6.4, -6), hallS = xWall(5, 5.4);
-  skin(-7, -6.41, -1.6, -6.41, col("north").wall, hallN.full); skin(1.6, -6.41, 7, -6.41, col("north").wall, hallN.full);
+  const hallN = xWall(HALL.z0 - .4, HALL.z0), hallS = xWall(HALL.z1, HALL.z1 + .4);
+  skin(-HX, HALL.z0 - .41, -1.6, HALL.z0 - .41, col("north").wall, hallN.full); skin(1.6, HALL.z0 - .41, HX, HALL.z0 - .41, col("north").wall, hallN.full);
+  const NZ = HALL.z0 + .02;   // 大廳北牆的南面（掛東西的位置）
 
   /* ---------- 展廳入口：燙金門框＋燙金廳名牌（固定在門上）；兩側翼廳再掛直式燙金布幔 ---------- */
   const glowMats = [];   // 夜裡要亮一點的牌子
@@ -230,15 +230,18 @@ export function createMap(root, opt) {
       g.font = `italic 600 40px "Cormorant Garamond", serif`; g.fillText(f.en || "", w / 2, h - 80);
     });
   }
-  function hangingBanner(f, x, z) {
+  // 掛在高高的金色旗桿上（比牆還高，不會被柱子、椅子擋到；使用者說要往上放才看得清楚）
+  function hangingBanner(f, x, z, side) {
     const tex = bannerTex(f);
     const mat = std(0xffffff, { map: tex, roughness: .85, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: .05, side: THREE.DoubleSide });
     glowMats.push(mat);
     const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
-    const cloth = new THREE.Mesh(new THREE.PlaneGeometry(.9, 2.5), mat); cloth.position.y = 1.55; cloth.castShadow = true; g.add(cloth);
-    const rod = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, 1.1, 10), M.gold); rod.rotation.z = Math.PI / 2; rod.position.y = 2.83; g.add(rod);
-    for (const s of [-1, 1]) { const k = new THREE.Mesh(new THREE.SphereGeometry(.04, 10, 8), M.gold); k.position.set(s * .57, 2.83, 0); g.add(k); }
-    solids.push([x - .5, z - .08, x + .5, z + .08]);
+    const cloth = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 3), mat); cloth.position.y = 2.7; cloth.castShadow = true; g.add(cloth);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(.035, .045, 4.4, 12), M.gold); pole.position.set(side * .62, 2.2, 0); pole.castShadow = true; g.add(pole);
+    const foot = new THREE.Mesh(new THREE.CylinderGeometry(.16, .2, .06, 16), M.gold); foot.position.set(side * .62, .03, 0); g.add(foot);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(.07, 12, 10), M.gold); cap.position.set(side * .62, 4.42, 0); g.add(cap);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(.022, .022, 1.3, 10), M.gold); arm.rotation.z = Math.PI / 2; arm.position.set(0, 4.22, 0); g.add(arm);
+    solidCircle(x + side * .62, z, .18);
   }
   // 展廳後牆上一行大大的燙金廳名（人在廳裡也看得到）
   function wallTitle(f, x, z, w = 5.2) {
@@ -255,23 +258,24 @@ export function createMap(root, opt) {
   function portal(r) {
     const label = `${r.f.numeral || ""}　${r.f.label}`, en = r.f.en || "";
     if (r.pos === "north") {
-      for (const s of [-1, 1]) box(.12, H - 1.02, .12, M.gold, s * 1.66, 0, -5.98, { parent: hallN.full });
-      box(3.5, .1, .14, M.gold, 0, H - 1.06, -5.98, { parent: hallN.full });
-      plaque(plaqueTex(label, en), 3, .76, 0, H - .5, -5.94, 0, hallN.full);
-      wallTitle(r.f, 0, -15.97, 4.6);
+      for (const s of [-1, 1]) box(.12, H - 1.02, .12, M.gold, s * 1.66, 0, NZ, { parent: hallN.full });
+      box(3.5, .1, .14, M.gold, 0, H - 1.06, NZ, { parent: hallN.full });
+      plaque(plaqueTex(label, en), 3, .76, 0, H - .5, NZ + .04, 0, hallN.full);
+      wallTitle(r.f, 0, OUT.z0 + .03, 4.6);
     } else if (r.pos === "south") {
       // 大廳南牆降低時（人在大廳）：門兩邊矮金柱＋斜放在矮牆上的牌子
-      for (const s of [-1, 1]) { cyl(.06, .08, .9, M.gold, s * 1.72, 0, 5.2, 16, hallS.low); sph(.08, M.gold, s * 1.72, .95, 5.2, hallS.low); }
-      const g = plaque(plaqueTex(label, en), 2.6, .66, 4.1, .82, 5.05, 0, hallS.low); g.rotation.x = -.6;
+      for (const s of [-1, 1]) { cyl(.06, .08, .9, M.gold, s * 1.72, 0, HALL.z1 + .2, 16, hallS.low); sph(.08, M.gold, s * 1.72, .95, HALL.z1 + .2, hallS.low); }
+      const g = plaque(plaqueTex(label, en), 2.6, .66, 4.4, .82, HALL.z1 + .05, 0, hallS.low); g.rotation.x = -.6;
       // 人在商店裡（南牆升起來）：牆上掛店名
-      plaque(plaqueTex(label, en), 3, .76, 0, H - .5, 5.43, 0, hallS.full);
+      plaque(plaqueTex(label, en), 3, .76, 0, H - .5, HALL.z1 + .43, 0, hallS.full);
     } else {
-      const s = r.pos === "west" ? -1 : 1, x = s * 7;
+      const s = r.pos === "west" ? -1 : 1, x = s * HX;
       for (const z of [HALL.cz - 1.36, HALL.cz + 1.36]) box(.12, H - 1.02, .12, M.gold, x - s * .04, 0, z);
       box(.12, .1, 2.84, M.gold, x - s * .04, H - 1.06, HALL.cz);
       // 門南邊一面直式布幔，正面朝鏡頭，一眼讀得到（使用者嫌過左右兩廳的牌子看不清楚）
-      hangingBanner(r.f, x - s * .62, HALL.cz + 2.05);
-      wallTitle(r.f, (r.x0 + r.x1) / 2, -15.97, 5.6);
+      // 布幔立在大廳裡、門的南邊，離牆 2 公尺：站在大廳中間就看得到（大廳放大後靠牆會跑出畫面）
+      hangingBanner(r.f, x - s * 2.1, HALL.cz + 2.3, s);
+      wallTitle(r.f, (r.x0 + r.x1) / 2, OUT.z0 + .03, 5);
     }
   }
   rooms.forEach(portal);
@@ -320,7 +324,7 @@ export function createMap(root, opt) {
     const along = Math.abs(Math.sin(rot)) > .5;
     solids.push(along ? [x - .3, z - .85, x + .3, z + .85] : [x - .85, z - .3, x + .85, z + .3]);
   }
-  bench(-6.45, 3.2, Math.PI / 2); bench(6.45, 3.2, Math.PI / 2);
+  bench(-HX + .55, HALL.cz + 4.2, Math.PI / 2); bench(HX - .55, HALL.cz + 4.2, Math.PI / 2);
   function column(x, z) {
     box(.7, .16, .7, M.marble, x, 0, z); cyl(.27, .3, .1, M.marble, x, .16, z, 24);
     cyl(.22, .25, H - .5, M.marble, x, .26, z, 20);
@@ -328,7 +332,8 @@ export function createMap(root, opt) {
     cyl(.3, .24, .14, M.marble, x, H - .24, z, 24); box(.66, .1, .66, M.marble, x, H - .1, z);
     solidCircle(x, z, .36);
   }
-  for (const [x, z] of [[-4.9, -4.3], [4.9, -4.3], [-4.9, 3.4], [4.9, 3.4]]) column(x, z);
+  // 柱子靠牆邊，中間留給恐龍散步
+  for (const [x, z] of [[-8.4, HALL.z0 + 1.5], [8.4, HALL.z0 + 1.5], [-8.4, HALL.z1 - 1.5], [8.4, HALL.z1 - 1.5]]) column(x, z);
   function plant(x, z, s = 1) {
     cyl(.24 * s, .19 * s, .5 * s, M.pot, x, 0, z, 18);
     for (let i = 0; i < 9; i++) {
@@ -337,7 +342,7 @@ export function createMap(root, opt) {
     }
     solidCircle(x, z, .28 * s);
   }
-  for (const [x, z] of [[-6.4, -5.4], [6.4, -5.4], [-6.4, 4.45], [6.4, 4.45]]) plant(x, z, 1.1);
+  for (const [x, z] of [[-HX + .6, HALL.z0 + .6], [HX - .6, HALL.z0 + .6], [-HX + .6, HALL.z1 - .55], [HX - .6, HALL.z1 - .55]]) plant(x, z, 1.1);
   // 大理石半身像（夜裡你走過去之後，牠把頭轉過來）
   const statues = [];
   function bust(x, z) {
@@ -351,16 +356,16 @@ export function createMap(root, opt) {
     const nose = new THREE.Mesh(new THREE.ConeGeometry(.025, .06, 6), M.marble); nose.position.set(0, -.01, .13); nose.rotation.x = Math.PI / 2; head.add(nose);
     statues.push({ x, z, head, near: false, pose: 0 });
   }
-  bust(-2.6, -5.45); bust(2.6, -5.45);
+  bust(-2.6, HALL.z0 + .55); bust(2.6, HALL.z0 + .55);
   // 牆上的畫：北牆一幅肖像（眼睛會跟著你）、側牆兩幅風景
-  { const p = painting(-3.9, 1.75, -5.77, .7, .9, portraitTex(210), 0, true); hallN.full.add(p); }
-  painting(-6.77, 1.75, -3.4, 1.3, .9, portraitTex(150, 1), Math.PI / 2);
-  painting(6.77, 1.75, -3.4, 1.3, .9, portraitTex(30, 1), -Math.PI / 2);
-  { const w = windowAt(4.2, -5.79); hallN.full.add(w); }
+  { const p = painting(-5, 1.75, NZ + .21, .7, .9, portraitTex(210), 0, true); hallN.full.add(p); }
+  painting(-HX + .23, 1.75, HALL.cz - 3.6, 1.3, .9, portraitTex(150, 1), Math.PI / 2);
+  painting(HX - .23, 1.75, HALL.cz - 3.6, 1.3, .9, portraitTex(30, 1), -Math.PI / 2);
+  { for (const wx of [4.6, 7.4]) hallN.full.add(windowAt(wx, NZ + .19)); }
   // 出口（大廳北牆左邊，跟進館的位置相反）＋月白琺瑯牌
-  const EXIT = { x: -5.6, z: -5.3 };
+  const EXIT = { x: -7.6, z: HALL.z0 + .7 };
   {
-    const g = new THREE.Group(); g.position.set(-5.6, 0, -5.97); hallN.full.add(g);
+    const g = new THREE.Group(); g.position.set(EXIT.x, 0, NZ + .01); hallN.full.add(g);
     const door = std(0x5a3e28, { roughness: .45 });
     for (const s of [-1, 1]) { const d = new THREE.Mesh(new THREE.BoxGeometry(.66, 2.2, .06), door); d.position.set(s * .34, 1.1, 0); d.castShadow = true; g.add(d);
       for (const py of [.6, 1.5]) { const p = new THREE.Mesh(new THREE.BoxGeometry(.46, .6, .02), std(0x4c3422, { roughness: .5 })); p.position.set(s * .34, py, .04); g.add(p); }
@@ -369,13 +374,13 @@ export function createMap(root, opt) {
     plaque(plaqueTex("出口　EXIT", "", { moon: true }), 1, .26, 0, 2.58, .04, 0, g);
   }
   // 警衛的服務台（大廳西南角，不擋路）
-  box(1.3, 1, .55, M.marble, -3.6, 0, 3.9, { solid: true }); box(1.38, .05, .62, M.darkMarble, -3.6, 1, 3.9);
-  const GUARD_AT = new THREE.Vector3(-3.6, 0, 4.55);
+  box(1.3, 1, .55, M.marble, -5.4, 0, HALL.z1 - 1.25, { solid: true }); box(1.38, .05, .62, M.darkMarble, -5.4, 1, HALL.z1 - 1.25);
+  const GUARD_AT = new THREE.Vector3(-5.4, 0, HALL.z1 - .6);
 
   /* ---------- 恐龍骨架：脊椎、肋骨、骨盆、腿、頭骨（掏空的眼窩）、支架 ---------- */
   const dino = new THREE.Group(); dino.position.set(DAIS.x, .32, DAIS.z); scene.add(dino);
   const dinoBody = new THREE.Group(); dinoBody.scale.setScalar(.82); dino.add(dinoBody);
-  const dinoHead = new THREE.Group(), dinoJaw = new THREE.Group();
+  const dinoHead = new THREE.Group(), dinoJaw = new THREE.Group(), dinoLegs = [];
   {
     const B = M.bone, add = (m, p = dinoBody) => { m.castShadow = true; p.add(m); return m; };
     const tube = (pts, r, p = dinoBody, mat = B) => add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(v => new THREE.Vector3(...v))), 24, r, 8), mat), p);
@@ -407,10 +412,12 @@ export function createMap(root, opt) {
     // 腿：大腿、小腿、蹠骨、三根腳趾
     for (const s of [-1, 1]) {
       const z = s * .3;
-      joint(-.15, 1.78, z, .1); tube([[-.15, 1.78, z], [.05, 1.4, z], [.18, 1.02, z]], .075); joint(.18, 1.0, z, .085);
-      tube([[.18, 1.0, z], [.05, .7, z], [-.12, .42, z]], .055); joint(-.12, .42, z, .06);
-      tube([[-.12, .42, z], [.0, .22, z], [.14, .06, z]], .045);
-      for (const dz of [-.09, 0, .09]) tube([[.14, .06, z], [.32, .04, z + dz * 1.6], [.46, .02, z + dz * 2.2]], .022);
+      // 整條腿掛在髖關節上（夜裡下台散步時一前一後地擺）
+      const leg = new THREE.Group(); leg.position.set(-.15, 1.78, z); dinoBody.add(leg); dinoLegs.push(leg);
+      joint(0, 0, 0, .1, leg); tube([[0, 0, 0], [.2, -.38, 0], [.33, -.76, 0]], .075, leg); joint(.33, -.78, 0, .085, leg);
+      tube([[.33, -.78, 0], [.2, -1.08, 0], [.03, -1.36, 0]], .055, leg); joint(.03, -1.36, 0, .06, leg);
+      tube([[.03, -1.36, 0], [.15, -1.56, 0], [.29, -1.72, 0]], .045, leg);
+      for (const dz of [-.09, 0, .09]) tube([[.29, -1.72, 0], [.47, -1.74, dz * 1.6], [.61, -1.76, dz * 2.2]], .022, leg);
       // 小手
       tube([[1.35, 1.72, s * .18], [1.46, 1.48, s * .22], [1.6, 1.42, s * .2]], .025);
       for (const dz of [-.03, .03]) tube([[1.6, 1.42, s * .2 + dz], [1.68, 1.36, s * .2 + dz * 2]], .012);
@@ -436,6 +443,7 @@ export function createMap(root, opt) {
   }
   dino.rotation.y = .55;
   const DINO_BASE = .55;
+  const DW = { state: "home", wait: 6, th: 0, th0: 0, walk: 0, off: false, cx: 0, cz: 0 };
 
   /* ---------- 展品：每廳沿著後牆一排展櫃；夜裡會跑出來 ---------- */
   function goldObject(key) {
@@ -566,10 +574,11 @@ export function createMap(root, opt) {
     solids.push([x0 - .1, z - .1, x1 + .1, z + .1]);
   }
   // 每一廳的展櫃位置：先排後牆那一排，再往前一排一排（沒有作品的先留空櫃）
+  // 翼廳 4 排×2（中間留一大塊給街機、鏡子）、理財廳後牆一排 6 座
   const LAYOUT = {
-    west: { rows: [-14.7, -9.2, -3.7, 2.6, 7.9], cols: [-16.6, -13.2, -9.8] },
-    east: { rows: [-14.7, -9.2, -3.7, 2.6, 7.9], cols: [9.8, 13.2, 16.6] },
-    north: { rows: [-14.7, -10.4], cols: [[-5.6, -2.8, 0, 2.8, 5.6], [-4.4, -1.6, 1.6, 4.4]] }
+    west: { rows: [OUT.z0 + 1.4, OUT.z0 + 6.4, HALL.cz + 5.1, OUT.z1 - 2.1], cols: [OUT.x0 + 2, -HX - 2.4] },
+    east: { rows: [OUT.z0 + 1.4, OUT.z0 + 6.4, HALL.cz + 5.1, OUT.z1 - 2.1], cols: [HX + 2.4, OUT.x1 - 2] },
+    north: { rows: [OUT.z0 + 1.3], cols: [[-7.5, -4.5, -1.5, 1.5, 4.5, 7.5]] }
   };
   for (const r of rooms) {
     const list = exhibits.filter(e => e.floor === r.f.id);
@@ -584,11 +593,12 @@ export function createMap(root, opt) {
     const firstCols = Array.isArray(L.cols[0]) ? L.cols[0] : L.cols;
     rope(r.x0 + .6, r.x1 - .6, L.rows[0] + 1);
     const gaps = []; for (let i = 0; i <= firstCols.length; i++) { const a = i ? firstCols[i - 1] + .5 : r.x0, b = i < firstCols.length ? firstCols[i] - .5 : r.x1; if (b - a > 1.3) gaps.push((a + b) / 2); }
-    gaps.forEach((gx, i) => i % 2 === 0 ? windowAt(gx, r.z0 + .01, 0, 1.1, 1.4, .8) : painting(gx, 1.5, r.z0 + .05, .8, .9, portraitTex(30 + i * 70, i % 3 ? 1 : 0)));
+    // 牆中間留給大大的廳名，不掛東西
+    gaps.filter(gx => Math.abs(gx - cx) > 1.2).forEach((gx, i) => i % 2 === 0 ? windowAt(gx, r.z0 + .01, 0, 1.1, 1.4, .8) : painting(gx, 1.5, r.z0 + .05, .8, .9, portraitTex(30 + i * 70, i % 3 ? 1 : 0)));
     // 夜裡展廳中間一片淡淡的值班燈光
     lightPool(cx, (r.z0 + r.z1) / 2, Math.min(r.x1 - r.x0, r.z1 - r.z0) * .5, .14);
     if (r.pos === "west") {   // 遊戲廳：兩台老街機、角落盆栽
-      for (const [ax, az] of [[r.x0 + .9, r.z1 - 1.6], [r.x0 + .9, r.z1 - 3]]) {
+      for (const [ax, az] of [[r.x0 + .9, HALL.cz - .7], [r.x0 + .9, HALL.cz + .7], [r.x0 + .9, HALL.cz - 2.1]]) {
         const g = new THREE.Group(); g.position.set(ax, 0, az); g.rotation.y = Math.PI / 2; scene.add(g);
         const cab = std(0x2a1f3d, { roughness: .5 });
         box(.8, 1.7, .7, cab, 0, 0, 0, { parent: g }); box(.84, .3, .74, std(0xd4a64a, { metalness: .6, roughness: .4 }), 0, 1.7, 0, { parent: g });
@@ -599,7 +609,7 @@ export function createMap(root, opt) {
       plant(r.x1 - .9, r.z1 - .9, 1.1); plant(r.x0 + .9, r.z0 + .9, 1.2);
     }
     if (r.pos === "east") {   // 測驗廳：一面大鏡子（照見自己）
-      const g = new THREE.Group(); g.position.set(r.x1 - .06, 0, r.z1 - 2.4); g.rotation.y = -Math.PI / 2; scene.add(g);
+      const g = new THREE.Group(); g.position.set(r.x1 - .06, 0, HALL.cz); g.rotation.y = -Math.PI / 2; scene.add(g);
       box(1.1, 2.2, .06, M.gold, 0, .2, 0, { parent: g });
       const mir = new THREE.Mesh(new THREE.PlaneGeometry(.94, 2.04), std(0xb9c6d8, { metalness: 1, roughness: .08 })); mir.position.set(0, 1.3, .04); g.add(mir);
       plant(r.x0 + .9, r.z1 - .9, 1.1); plant(r.x1 - .9, r.z0 + .9, 1.2);
@@ -617,20 +627,20 @@ export function createMap(root, opt) {
     cyl(.02, .02, .4, M.brass, r.x1 - .7, 1, r.z0 + 1.2, 8); cyl(.12, .16, .14, std(0xf3dfae, { emissive: 0xffc56b, emissiveIntensity: .6 }), r.x1 - .7, 1.38, r.z0 + 1.2, 16);
     // 西牆書架
     const spines = canvasTex(256, 256, (g, w, h) => { g.fillStyle = "#3a2a1c"; g.fillRect(0, 0, w, h); for (let row = 0; row < 4; row++) { let x = 4; while (x < w - 6) { const bw = 8 + rnd() * 14; g.fillStyle = `hsl(${rnd() * 360},${25 + rnd() * 25}%,${30 + rnd() * 30}%)`; g.fillRect(x, row * 64 + 8, bw, 52); x += bw + 2; } g.fillStyle = "#6b4a2e"; g.fillRect(0, row * 64 + 60, w, 4); } });
-    for (const z of [r.z0 + 1.6, r.z0 + 4.2]) {
+    for (const z of [r.z0 + 1.3, r.z0 + 3.5]) {
       const g = new THREE.Group(); g.position.set(r.x0 + .32, 0, z); g.rotation.y = Math.PI / 2; scene.add(g);
-      box(2.4, 1.9, .5, M.wood, 0, 0, 0, { parent: g });
-      const f = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 1.8), std(0xffffff, { map: spines, roughness: .8 })); f.position.set(0, .96, .26); g.add(f);
-      solids.push([r.x0, z - 1.2, r.x0 + .6, z + 1.2]);
+      box(2.1, 1.9, .5, M.wood, 0, 0, 0, { parent: g });
+      const f = new THREE.Mesh(new THREE.PlaneGeometry(2, 1.8), std(0xffffff, { map: spines, roughness: .8 })); f.position.set(0, .96, .26); g.add(f);
+      solids.push([r.x0, z - 1.05, r.x0 + .6, z + 1.05]);
     }
     // 東牆：掛著三個帆布袋（印著燈籠館徽的金色）
     for (let i = 0; i < 3; i++) {
-      const z = r.z0 + 3.3 + i * .9, bag = new THREE.Mesh(new THREE.PlaneGeometry(.6, .7), std([0xe8dcc0, 0x1d2b4f, 0xc9a14e][i], { roughness: .9, side: THREE.DoubleSide }));
+      const z = r.z0 + 1.9 + i * .9, bag = new THREE.Mesh(new THREE.PlaneGeometry(.6, .7), std([0xe8dcc0, 0x1d2b4f, 0xc9a14e][i], { roughness: .9, side: THREE.DoubleSide }));
       bag.position.set(r.x1 - .05, 1.5, z); bag.rotation.y = -Math.PI / 2; scene.add(bag);
       const h = new THREE.Mesh(new THREE.TorusGeometry(.14, .012, 6, 16, Math.PI), std(0x8a6a44)); h.position.set(r.x1 - .05, 1.85, z); h.rotation.y = -Math.PI / 2; scene.add(h);
       const logo = new THREE.Mesh(new THREE.CircleGeometry(.09, 16), i === 2 ? std(0x1d2b4f) : M.gold); logo.position.set(r.x1 - .06, 1.48, z); logo.rotation.y = -Math.PI / 2; scene.add(logo);
     }
-    box(.06, .05, 2.6, M.brass, r.x1 - .05, 1.86, r.z0 + 4.2, { shadow: false });
+    box(.06, .05, 2.6, M.brass, r.x1 - .05, 1.86, r.z0 + 2.8, { shadow: false });
     // 商品桌：一桌馬克杯疊成金字塔、一桌筆記本和書
     function table(x, z) {
       box(1.5, .06, .8, warmWood, x, .78, z); for (const [dx, dz] of [[-.65, -.32], [.65, -.32], [-.65, .32], [.65, .32]]) box(.06, .78, .06, warmWood, x + dx, 0, z + dz);
@@ -880,18 +890,7 @@ export function createMap(root, opt) {
     // 遊客、展品、恐龍、半身像、肖像、警衛
     if (!night) visitors.forEach((v, i) => updateVisitor(v, dt, t, i));
     for (const it of items) updateItem(it, dt, t);
-    const dd = Math.hypot(px - DAIS.x, pz - DAIS.z);
-    if (night && !reduced) {
-      const local = dino.worldToLocal(tmp.set(px, 2.2, pz));
-      const yaw = Math.atan2(-local.z, local.x - 1.9);
-      dinoHead.rotation.y += (clamp(yaw, -.9, .9) - dinoHead.rotation.y) * Math.min(1, dt * 3);
-      dinoJaw.rotation.z = -Math.max(0, Math.sin(t * 1.2)) * .38;
-      // 慢慢轉身面向你
-      const want = Math.atan2(-(pz - DAIS.z), px - DAIS.x); let d = want - dino.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d));
-      dino.rotation.y += clamp(d, -1, 1) * dt * .25;
-      dino.position.y = .32 + (dd < 4 ? Math.max(0, Math.sin(t * 9)) * .05 : 0);
-      if (dd < 4 && t - dinoSaidAt > 20) { dinoSaidAt = t; say(["喀啦。", "（牠歪頭看了你一眼。）", "吼——（骨頭版）", "（牠假裝自己只是一堆骨頭。）"][Math.floor(Math.random() * 4)], tmp.set(DAIS.x, 2.8, DAIS.z)); }
-    } else { dinoHead.rotation.y *= .9; dinoJaw.rotation.z *= .9; dino.position.y = .32; dino.rotation.y += (DINO_BASE - dino.rotation.y) * Math.min(1, dt * 2); }
+    updateDino(dt, t, px, pz);
     for (const s of statues) {
       const d = Math.hypot(px - s.x, pz - s.z);
       if (night && !reduced) { if (d < 1.8) s.near = true; else if (s.near && d > 2.6) { s.near = false; s.pose = 1 - s.pose; } } else s.pose = 0;
@@ -911,11 +910,11 @@ export function createMap(root, opt) {
     // 靠近什麼
     near = null; let bd = 1.35;
     for (const v of vitrines) { if (v.state !== "home") continue; const d = Math.hypot(px - v.look.x, pz - v.look.z); if (d < bd) { bd = d; near = v; } }
-    if (!hallN.lowered && Math.hypot(px - EXIT.x, pz - EXIT.z) < 1.1) near = { exit: true, x: EXIT.x, z: -6 };
+    if (!hallN.lowered && Math.hypot(px - EXIT.x, pz - EXIT.z) < 1.1) near = { exit: true, x: EXIT.x, z: HALL.z0 };
     // 鏡頭：斜俯視跟著人；直式手機拉遠一點才看得到兩側
     const aspect = W / Hh, far = aspect < 1 ? 1.35 : 1;
     // 鏡頭不要拍到館外太多：往北看到北牆就停（直式手機看得比較遠，停得早一點）
-    const zMin = aspect < 1 ? -11.2 : -12.6;
+    const zMin = aspect < 1 ? -9.2 : -10.6;
     // 鏡頭只平移、永遠不轉角度：看的那一點慢慢跟上，相機固定在它的斜上方（使用者嫌過地圖跟著傾斜、頭暈）
     tmp.set(px, .4, Math.max(pz - 1.8, zMin));
     camLook.lerp(tmp, reduced ? 1 : Math.min(1, dt * 6));
@@ -925,7 +924,7 @@ export function createMap(root, opt) {
     raf = requestAnimationFrame(frame);
   }
   // 門口引導：靠近門、往門裡走的時候，把人輕輕帶到門中間，不會卡在門框邊（使用者嫌過門口擋一下）
-  const DOORWAYS = { west: { axis: "x", at: -7.2, lat: "z", c: HALL.cz, hw: 1.3 }, east: { axis: "x", at: 7.2, lat: "z", c: HALL.cz, hw: 1.3 }, north: { axis: "z", at: -6.2, lat: "x", c: 0, hw: 1.6 }, south: { axis: "z", at: 5.2, lat: "x", c: 0, hw: 1.6 } };
+  const DOORWAYS = { west: { axis: "x", at: -HX - .2, lat: "z", c: HALL.cz, hw: 1.3 }, east: { axis: "x", at: HX + .2, lat: "z", c: HALL.cz, hw: 1.3 }, north: { axis: "z", at: HALL.z0 - .2, lat: "x", c: 0, hw: 1.6 }, south: { axis: "z", at: HALL.z1 + .2, lat: "x", c: 0, hw: 1.6 } };
   function doorAssist(iv, dt) {
     const P = player.position;
     for (const r of rooms) {
@@ -939,6 +938,51 @@ export function createMap(root, opt) {
       const tx = d.lat === "x" ? nl : P.x, tz = d.lat === "z" ? nl : P.z;
       if (!blocked(tx, tz)) P[d.lat] = nl;
     }
+  }
+  // 恐龍：夜裡在台上待一會兒，就走下來繞大廳一圈再回去（使用者想要更有趣）；你一靠近牠就停下來看你
+  function dinoAt(th) { return [DAIS.x + 6.2 * Math.cos(th), DAIS.z + 3.9 * Math.sin(th)]; }
+  function updateDino(dt, t, px, pz) {
+    const P = dino.position;
+    if (!night || reduced) {
+      DW.state = "home"; DW.wait = rr(5, 9); DW.off = false; P.set(DAIS.x, .32, DAIS.z);
+      dinoHead.rotation.y *= .9; dinoJaw.rotation.z *= .9; for (const l of dinoLegs) l.rotation.z *= .8;
+      dino.rotation.y += (DINO_BASE - dino.rotation.y) * Math.min(1, dt * 2); return;
+    }
+    const dist = Math.hypot(px - P.x, pz - P.z), nearP = dist < 3.6;
+    // 頭轉過來看你、偶爾張嘴
+    const local = dino.worldToLocal(tmp.set(px, 2.2, pz));
+    const yaw = Math.atan2(-local.z, local.x - 1.9);
+    dinoHead.rotation.y += (clamp(yaw, -.9, .9) - dinoHead.rotation.y) * Math.min(1, dt * 3);
+    dinoJaw.rotation.z = -Math.max(0, Math.sin(t * 1.2)) * .38;
+    if (nearP && t - dinoSaidAt > 20) { dinoSaidAt = t; say(["喀啦。", "（牠歪頭看了你一眼。）", "吼——（骨頭版）", "（牠假裝自己只是一堆骨頭。）"][Math.floor(Math.random() * 4)], tmp.set(P.x, 2.8, P.z)); }
+    let tx = null, tz = null, faceTo = null, moving = false;
+    if (DW.state === "home") {
+      faceTo = Math.atan2(-(pz - P.z), px - P.x);
+      if (!nearP) { DW.wait -= dt; if (DW.wait <= 0) { DW.th = Math.atan2(P.z - DAIS.z, P.x - DAIS.x) + rr(-.5, .5); DW.th0 = DW.th; DW.state = "out"; } }
+    } else if (DW.state === "loop") {
+      if (!nearP) {
+        const sp = Math.hypot(6.2 * Math.sin(DW.th), 3.9 * Math.cos(DW.th)) || 1;
+        DW.th += dt * 1.25 / sp; moving = true;
+        const [x, z] = dinoAt(DW.th); faceTo = Math.atan2(-(z - P.z), x - P.x); P.x = x; P.z = z;
+        if (DW.th - DW.th0 > Math.PI * 2) DW.state = "back";
+      } else faceTo = Math.atan2(-(pz - P.z), px - P.x);
+    } else {
+      [tx, tz] = DW.state === "out" ? dinoAt(DW.th) : [DAIS.x, DAIS.z];
+      const dx = tx - P.x, dz = tz - P.z, l = Math.hypot(dx, dz);
+      if (l < .05) { if (DW.state === "out") DW.state = "loop"; else { DW.state = "home"; DW.wait = rr(9, 15); } }
+      else if (!nearP) { const st = Math.min(l, 1.25 * dt); P.x += dx / l * st; P.z += dz / l * st; moving = true; faceTo = Math.atan2(-dz, dx); }
+      else faceTo = Math.atan2(-(pz - P.z), px - P.x);
+    }
+    if (faceTo !== null) { let d = faceTo - dino.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); dino.rotation.y += clamp(d * dt * 3, -dt * 2, dt * 2); }
+    // 在台上高一點，下了台貼地；走路時腿一前一後、身體微微起伏
+    const onDais = Math.hypot(P.x - DAIS.x, P.z - DAIS.z) < 2.65;
+    const gy = onDais ? .32 : 0;
+    P.y += (gy - P.y) * Math.min(1, dt * 6);
+    if (moving) { DW.walk += dt * 5.5; dinoLegs[0].rotation.z = Math.sin(DW.walk) * .38; dinoLegs[1].rotation.z = -Math.sin(DW.walk) * .38; P.y += Math.abs(Math.sin(DW.walk)) * .04; }
+    else for (const l of dinoLegs) l.rotation.z *= Math.max(0, 1 - dt * 6);
+    if (nearP && !moving) P.y += Math.max(0, Math.sin(t * 9)) * .04;
+    // 下了台才算擋路（台本身已經擋住了）
+    DW.off = !onDais; DW.cx = P.x + Math.cos(dino.rotation.y) * .35; DW.cz = P.z - Math.sin(dino.rotation.y) * .35;
   }
   function animate(c, wt, moving) {
     const u = c.userData; if (reduced) wt = 0;
@@ -996,7 +1040,7 @@ export function createMap(root, opt) {
   }
   addEventListener("resize", () => { if (running) resize(); });
   function placeCamera(far) { camera.position.set(camLook.x, camLook.y + 14 * far, camLook.z + 11.5 * far); camera.lookAt(camLook); }
-  function snapCamera() { const far = W / Hh < 1 ? 1.35 : 1; camLook.set(player.position.x, .4, Math.max(player.position.z - 1.8, -11.2)); placeCamera(far); }
+  function snapCamera() { const far = W / Hh < 1 ? 1.35 : 1; camLook.set(player.position.x, .4, Math.max(player.position.z - 1.8, -9.2)); placeCamera(far); }
   function loop() { cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(frame); }
 
   let warmed = false;
@@ -1015,7 +1059,8 @@ export function createMap(root, opt) {
     // night：true＝夜晚、false＝白天開館
     start(isNight) {
       night = isNight; running = true; startedOnce = true; guardSaid = false; resize();
-      player.position.set(0, 0, 3.9); player.rotation.y = Math.PI;
+      player.position.set(0, 0, HALL.z1 - 1.3); player.rotation.y = Math.PI;
+      DW.state = "home"; DW.wait = rr(4, 7); DW.off = false; dino.position.set(DAIS.x, .32, DAIS.z); dino.rotation.y = DINO_BASE;
       for (const it of items) homeItem(it);
       applyNight(); assignSpots(); snapCamera(); warmUp();
       curRoom = "hall"; loop();
