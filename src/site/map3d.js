@@ -273,8 +273,8 @@ export function createMap(root, opt) {
       for (const z of [HALL.cz - 1.36, HALL.cz + 1.36]) box(.12, H - 1.02, .12, M.gold, x - s * .04, 0, z);
       box(.12, .1, 2.84, M.gold, x - s * .04, H - 1.06, HALL.cz);
       // 門南邊一面直式布幔，正面朝鏡頭，一眼讀得到（使用者嫌過左右兩廳的牌子看不清楚）
-      // 布幔立在大廳裡、門的南邊，離牆 2 公尺：站在大廳中間就看得到（大廳放大後靠牆會跑出畫面）
-      hangingBanner(r.f, x - s * 2.1, HALL.cz + 2.3, s);
+      // 布幔立在大廳裡、門的北邊（使用者指定），離牆 2 公尺：站在大廳中間就看得到
+      hangingBanner(r.f, x - s * 2.1, HALL.cz - 2.3, s);
       wallTitle(r.f, (r.x0 + r.x1) / 2, OUT.z0 + .03, 5);
     }
   }
@@ -883,8 +883,8 @@ export function createMap(root, opt) {
     // 在哪一廳：上方浮出廳名
     const here = rooms.find(r => px > r.x0 && px < r.x1 && pz > r.z0 && pz < r.z1) || null;
     const key = here ? here.pos : "hall";
-    // 廳名已經固定在門口布幔、門楣和後牆上，不再從畫面上方跳出來（會跟後牆的大字疊在一起）
-    if (key !== curRoom) curRoom = key;
+    // 走進一廳，上方浮出廳名（墊一塊半透明深色底，跟後牆的大字疊到也讀得清楚）
+    if (key !== curRoom) { curRoom = key; showBanner(here); }
     // 大廳的北牆、南牆：人走到牆的北邊時，牆在人和鏡頭中間，降成矮牆
     for (const w of xWalls) { const lower = pz < w.z - .1; if (lower !== w.lowered) { w.lowered = lower; w.full.visible = !lower; w.low.visible = lower; } }
     // 遊客、展品、恐龍、半身像、肖像、警衛
@@ -1063,7 +1063,7 @@ export function createMap(root, opt) {
       DW.state = "home"; DW.wait = rr(4, 7); DW.off = false; dino.position.set(DAIS.x, .32, DAIS.z); dino.rotation.y = DINO_BASE;
       for (const it of items) homeItem(it);
       applyNight(); assignSpots(); snapCamera(); warmUp();
-      curRoom = "hall"; loop();
+      curRoom = "hall"; showBanner(null); loop();
       if (!helpShown) showHelp();
     },
     setNight(isNight) { night = isNight; guardSaid = false; bubble.hidden = true; applyNight(); if (!help.hidden) help.textContent = helpText(); },
