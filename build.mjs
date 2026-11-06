@@ -47,19 +47,16 @@ for (const f of files.sort()) hash.update(await readFile(`src/site/${f}`));
 hash.update(JSON.stringify(payload));
 const V = hash.digest("hex").slice(0, 8);
 for (const f of files.filter(f => f.endsWith(".js"))) {
-  const js = (await readFile(`src/site/${f}`, "utf8")).replace(/from "\.\/([\w-]+\.js)"/g, `from "./$1?v=${V}"`);
+  const js = (await readFile(`src/site/${f}`, "utf8")).replace(/from "\.\/([\w-]+\.js)"/g, `from "./$1?v=${V}"`).replace(/import\("\.\/([\w-]+\.js)"\)/g, `import("./$1?v=${V}")`);
   await writeFile(`${OUT}/${f}`, js);
 }
 const html = (await readFile("src/site/index.html", "utf8"))
   .replace(/(href|src)="([\w-]+\.(?:css|js))"/g, `$1="$2?v=${V}"`)
   .replace("/*MUSEUM_DATA*/null", JSON.stringify(payload).replace(/</g, "\\u003c"));
 await writeFile(`${OUT}/index.html`, html);
-// 3D 大廳試做版（/lab/）：一樣的資料，給試做頁用
-await writeFile(`${OUT}/lab/data.js`, `export default ${JSON.stringify({ floors: payload.floors, exhibits: payload.exhibits, guard: payload.guard, guardDay: payload.guardDay })};\n`);
 await writeFile(`${OUT}/_headers`, [
   "/*", "  X-Content-Type-Options: nosniff", "  Referrer-Policy: strict-origin-when-cross-origin",
   "/index.html", "  Cache-Control: no-cache",
-  "/lab/index.html", "  Cache-Control: no-cache",
   "/*.js", "  Cache-Control: public, max-age=300",
   "/*.css", "  Cache-Control: public, max-age=300", ""
 ].join("\n"));

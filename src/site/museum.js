@@ -4,7 +4,6 @@
 // 抽到哪一句只在瀏覽器裡用，不記錄、不送出。
 import { objectSVG } from "./objects.js";
 import { engravingSVG, hasEngraving } from "./engravings.js";
-import { createMap } from "./map.js";
 
 const D = window.MUSEUM;
 const $ = id => document.getElementById(id);
@@ -277,7 +276,9 @@ async function enter() {
 
 /* ---------- 三、館內：探索（day／night）／總覽（catalog） ---------- */
 let mode = null, lastExplore = "day";
-const map = createMap($("map"), {
+// 3D 館內地圖很大（three.js 約 750 KB），進館時才載入；在售票口就先在背景抓檔案
+let map = null, mapReady = null;
+const MAP_OPTS = {
   floors: D.floors, exhibits: D.exhibits.filter(e => e.onDisplay), reduced: REDUCED,
   // 夜裡是夜班警衛，白天換一套台詞
   guardLine: night => {
@@ -287,7 +288,19 @@ const map = createMap($("map"), {
   openPlacard: (e, from, night) => openPlacard(e, from, night),
   blocked: () => !$("placard").hidden || !$("leave").hidden || mode === "catalog",
   exit: () => askLeave()
-});
+};
+function loadMap() {
+  return mapReady ||= (async () => {
+    // 燙金廳名牌是畫在畫布上的字，先等字型載好
+    const fonts = Promise.all([document.fonts.load('700 100px "Noto Serif TC"', "遊戲廳理財廳測驗廳商店出口"), document.fonts.load('italic 500 50px "Cormorant Garamond"', "Salary")]).catch(() => {});
+    await Promise.race([fonts, wait(2500)]);
+    const { createMap } = await import("./map3d.js");
+    map = createMap($("map"), MAP_OPTS);
+    return map;
+  })();
+}
+const prefetchMap = () => import("./map3d.js").catch(() => {});
+
 
 function openInside(m) {
   document.body.classList.remove("at-booth");
@@ -309,11 +322,13 @@ async function setMode(m, first = false) {
   dn.title = toNight ? "熄燈，切到夜晚" : "開燈，回到白天"; dn.setAttribute("aria-label", dn.title);
   document.body.classList.toggle("is-dark", m === "night"); document.body.classList.toggle("is-lit", m !== "night");
   if (m === "catalog") {
-    map.pause(); $("map").hidden = true;
+    map?.pause(); $("map").hidden = true;
     renderCatalog(); $("catalog").hidden = false; $("catalog").scrollTop = 0;
   } else {
     $("catalog").hidden = true; $("map").hidden = false;
-    if (first || !was) map.start(m === "night");
+    if (!map) { $("map").classList.add("loading"); await loadMap(); $("map").classList.remove("loading"); }
+    if (mode !== m) return;   // 載入的時候又切到別的模式
+    if (first || !was || !map.started) map.start(m === "night");
     else if (was === "catalog") { map.setNight(m === "night"); map.resume(); }
     else map.setNight(m === "night");
   }
@@ -393,7 +408,7 @@ function closeLeave() { $("leave").hidden = true; }
 /* ---------- 回到售票口 ---------- */
 function resetToBooth() {
   ["ticket-scene", "inside-scene"].forEach(id => $(id).hidden = true);
-  map.stop(); mode = null;
+  map?.stop(); mode = null;
   document.body.classList.remove("is-dark", "in-inside"); document.body.classList.add("is-lit", "at-booth");
   setLamps(true);
   document.querySelectorAll(".lamp").forEach(l => l.classList.remove("flick"));
@@ -416,6 +431,8 @@ $("site-foot").innerHTML = footHTML();
 buildHall();
 $("booth").addEventListener("click", issue);
 $("buy").addEventListener("click", issue);
+// 售票口閒下來時，先在背景把 3D 地圖的檔案抓下來
+addEventListener("load", () => setTimeout(prefetchMap, 1200));
 $("tk-go").addEventListener("click", enter);
 $("tk-save").addEventListener("click", saveTicket);
 $("tk-again").addEventListener("click", again);
