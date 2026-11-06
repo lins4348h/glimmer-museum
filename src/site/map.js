@@ -279,9 +279,11 @@ export function createMap(root, opt) {
     <div class="m-joy" hidden><span></span></div>
     <p class="m-banner" hidden></p>
     <p class="m-help" hidden></p>
-    <button class="m-act" type="button" hidden></button>`;
+`;
   const q = s => root.querySelector(s);
-  const cv = q(".m-cv"), layer = q(".m-layer"), joyEl = q(".m-joy"), banner = q(".m-banner"), help = q(".m-help"), act = q(".m-act");
+  const cv = q(".m-cv"), layer = q(".m-layer"), joyEl = q(".m-joy"), banner = q(".m-banner"), help = q(".m-help");
+  // 走近展品時，展櫃上方浮出一張暖紙色小展牌，點它看說明牌（不放在畫面下方，才不會跟拖曳的搖桿卡到）
+  const act = document.createElement("button"); act.type = "button"; act.className = "m-tag"; act.hidden = true; layer.appendChild(act);
   const sctx = cv.getContext("2d");
   const fc = document.createElement("canvas"), fx = fc.getContext("2d");   // 一張世界解析度的畫面
   const lc = document.createElement("canvas"), lx = lc.getContext("2d");   // 夜色
@@ -565,9 +567,9 @@ export function createMap(root, opt) {
     if (!best) { act.hidden = true; return; }
     const how = coarse ? "" : "<kbd>空白鍵</kbd>";
     act.innerHTML = best.kind === "item"
-      ? `<b>${esc(best.it.e.title)}</b><span>看說明牌${how}</span>`
-      : `<b>出口</b><span>回到售票口${how}</span>`;
-    act.hidden = false;
+      ? `<b>${esc(best.it.e.title)}</b><span>看說明牌 ›${how}</span>`
+      : `<b>出口</b><span>回到售票口 ›${how}</span>`;
+    act.hidden = false; act.classList.remove("in"); void act.offsetWidth; act.classList.add("in");
   }
   function interact() {
     if (!near || opt.blocked()) return;
@@ -604,12 +606,6 @@ export function createMap(root, opt) {
     list.push({ y: GUARD_AT.y, draw: () => shadow(GUARD_AT.x - cx, GUARD_AT.y - cy) || blit(sprite(GUARD, "guard"), GUARD_AT.x - 8 - cx, GUARD_AT.y - 24 - cy) });
     list.push({ y: p.y, draw: () => shadow(p.x - cx, p.y - cy) || blit(sprite(TEACHER[p.dir + p.frame], "t" + p.dir + p.frame), Math.round(p.x) - 8 - cx, Math.round(p.y) - 24 - cy) });
     list.sort((a, b) => a.y - b.y).forEach(o => o.draw());
-    // 可以互動的東西頭上一個小金箭頭
-    if (near) {
-      const bob = reduced ? 0 : Math.round(Math.sin(ts * 5) * 1.5);
-      const ax = near.kind === "item" ? near.it.home.x : EXIT_AT.x, ay = near.kind === "item" ? near.it.ty * T - 13 : EXIT.y * T + 4;
-      drawArrow(ax - cx, ay - cy + bob);
-    }
     if (night) lightPass(cx, cy, ts); else litPass(cx, cy);
     // 放大到螢幕
     sctx.imageSmoothingEnabled = false;
@@ -617,10 +613,7 @@ export function createMap(root, opt) {
     placeDom(cx, cy);
   }
   function blit(img, X, Y, flip) { fx.drawImage(flip ? flipped(img, img.__k || (img.__k = "f" + Math.random())) : img, Math.round(X), Math.round(Y)); }
-  function drawArrow(X, Y) {
-    fx.fillStyle = "#0a0e1a"; fx.fillRect(X - 4, Y - 1, 9, 1); fx.fillRect(X - 3, Y, 7, 1);
-    fx.fillStyle = "#f3d895"; fx.fillRect(X - 3, Y - 4, 7, 3); fx.fillRect(X - 2, Y - 1, 5, 1); fx.fillRect(X - 1, Y, 3, 1); fx.fillRect(X, Y + 1, 1, 1);
-  }
+
   function drawItem(it, ts, cx, cy) {
     // 展品用原尺寸（16 像素），跟人、牆、展櫃同一個像素密度
     const img = sprite(ITEMS[it.e.object] || ITEMS.lantern, "it" + it.e.object);
@@ -752,16 +745,33 @@ export function createMap(root, opt) {
     const at = (el, X, Y) => { el.style.transform = `translate(${Math.round((X - cx) * S)}px, ${Math.round((Y - cy) * S)}px)`; };
     for (const s of signs) at(s.el, s.x, s.y);
     const now = performance.now();
-    // 泡泡一定在畫面裡：左右夾在邊界內；上方會被頂端的按鈕列擋到時，改放到說話的人下面
     const W = root.clientWidth, H = root.clientHeight, TOP = 64;
+    // 小展牌：浮在展櫃（或出口的門）上方；上面放不下就放到人的下面
+    let tagTop = null;
+    if (!act.hidden && near) {
+      const X = near.kind === "item" ? near.it.home.x : EXIT_AT.x, up = near.kind === "item" ? near.it.ty * T - 13 : EXIT.y * T - 18, down = p.y + 6;
+      const bw = act.offsetWidth, bh = act.offsetHeight, sx = (X - cx) * S;
+      const below = (up - cy) * S - bh - 4 < TOP;
+      const left = clamp(sx - bw / 2, 8, Math.max(8, W - 8 - bw));
+      const top = below ? (down - cy) * S + 8 : (up - cy) * S - bh - 4;
+      act.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+      act.style.setProperty("--tail", `${Math.round(clamp(sx - left, 10, bw - 10))}px`);
+      act.classList.toggle("below", below);
+      if (!below) tagTop = top;
+    }
+    // 對話泡泡：一定在畫面裡；上方放不下改放到說話的人下面；人走遠了就收起來
     for (const b of bubbles) {
       if (b.until < now) { b.el.hidden = true; continue; }
-      let X, up, down;
-      if (b.who === "guard") { X = GUARD_AT.x; up = GUARD_AT.y - 26; down = GUARD_AT.y + 4; }
-      else if (b.who === "dino") { X = dino.x; up = dino.y - 30; down = dino.y + 6; }
-      else { const it = items.find(i => "item" + i.e.id === b.who); X = it.x; up = it.y - 24; down = it.y + (it.state === "home" ? 18 : 4); }
+      let X, up, down, foot, id = null;
+      if (b.who === "guard") { X = GUARD_AT.x; up = GUARD_AT.y - 26; down = GUARD_AT.y + 4; foot = GUARD_AT.y; }
+      else if (b.who === "dino") { X = dino.x; up = dino.y - 30; down = dino.y + 6; foot = dino.y; }
+      else { const it = items.find(i => "item" + i.e.id === b.who); X = it.x; up = it.y - 24; down = it.y + (it.state === "home" ? 18 : 4); foot = it.state === "home" ? it.look.y : it.y; id = it.e.id; }
+      if (Math.hypot(p.x - X, p.y - foot) > 96) { b.until = 0; b.el.hidden = true; continue; }
       const bw = b.el.offsetWidth, bh = b.el.offsetHeight;
-      const sx = (X - cx) * S, su = (up - cy) * S, sd = (down - cy) * S;
+      const sx = (X - cx) * S, sd = (down - cy) * S;
+      // 同一件展品上方已經有小展牌：泡泡疊在小展牌上面
+      let su = (up - cy) * S;
+      if (id && near?.kind === "item" && near.it.e.id === id && tagTop !== null) su = tagTop - 2;
       const below = su - bh - 8 < TOP;
       const left = clamp(sx - bw / 2, 8, Math.max(8, W - 8 - bw));
       const top = clamp(below ? sd + 10 : su - bh - 8, TOP, Math.max(TOP, H - bh - 8));
@@ -797,7 +807,7 @@ export function createMap(root, opt) {
     if (!running || opt.blocked() || e.target.closest?.("input, textarea")) return;
     const k = e.key.toLowerCase();
     if (KEY[k]) { keys.add(KEY[k]); target = null; e.preventDefault(); if (document.activeElement === act) act.blur(); }
-    else if ((k === " " || k === "enter" || k === "e") && !e.target.closest?.("button:not(.m-act), a")) { if (!e.repeat) interact(); e.preventDefault(); }
+    else if ((k === " " || k === "enter" || k === "e") && !e.target.closest?.("button:not(.m-tag), a")) { if (!e.repeat) interact(); e.preventDefault(); }
   });
   addEventListener("keyup", e => { const k = KEY[e.key.toLowerCase()]; if (k) keys.delete(k); });
   addEventListener("blur", () => keys.clear());

@@ -13,7 +13,7 @@ const FOOTER = [
 const GLOWS = ["gold", "moon", "mist", "rose"];
 const STATUSES = ["open", "renovating", "draft"];
 const MOVES = ["hop", "roll", "waddle", "float", "scuttle", "spin", "tilt", "slide", "wobble", "none"];
-const TONES = ["tender", "wry"];
+const TONES = ["tender", "warm"];
 
 const data = JSON.parse(await readFile("content/museum.json", "utf8"));
 const errs = check(data);
@@ -70,12 +70,12 @@ function check(d) {
   }
   // 展品的個性：怎麼動、被抓到時說什麼
   for (const e of d.exhibits) if (e.persona?.move && !MOVES.includes(e.persona.move)) errs.push(`展品「${e.title}」的動法「${e.persona.move}」不對（${MOVES.join("／")}）`);
-  // 售票口的票根：一句話＋調性（tender 感性、wry 幽默）
+  // 售票口的票根：一句溫柔的鼓勵＋顏色（tender 月白銀箔、warm 暖金燙金）
   const lines = d.admission?.lines || [];
   if (!lines.length) errs.push("售票口沒有任何票根的句子");
   lines.forEach((l, i) => {
     if (!l.zh) errs.push(`第 ${i + 1} 句票根沒有中文`);
-    if (!TONES.includes(l.tone)) errs.push(`第 ${i + 1} 句票根的調性「${l.tone}」不對（tender／wry）`);
+    if (!TONES.includes(l.tone)) errs.push(`第 ${i + 1} 句票根的調性「${l.tone}」不對（tender 月白銀箔／warm 暖金燙金）`);
   });
   if (d.floors.length > 4) errs.push("地圖只有四個展廳的位置（西、北、東、南），樓層最多 4 個");
   return errs;

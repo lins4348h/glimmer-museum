@@ -143,10 +143,6 @@ body.at-booth .hall-floor { opacity: 0; }
 .scene-head { text-align: center; }
 .lobby-gap { flex: 1 0 clamp(16px, 3.4svh, 40px); }
 
-/* 館名下一行小字：告訴訪客點哪裡 */
-.lobby-hint { margin: clamp(10px, 1.8svh, 18px) 0 0; font-size: .8rem; letter-spacing: .3em; text-indent: .3em; color: var(--gold-soft); opacity: .8;
-  animation: hint-breathe 3.2s ease-in-out infinite; }
-@keyframes hint-breathe { 0%, 100% { opacity: .5; } 50% { opacity: .95; } }
 
 /* 售票亭：所有尺寸用亭子自己的寬（cqi）算，縮放時比例不變 */
 /* 整座售票亭就是按鈕：點窗口出票 */
@@ -221,9 +217,14 @@ body.at-booth .booth-frame { animation: glass-breathe 3.2s ease-in-out infinite;
   background: linear-gradient(180deg, #23365c, #0a1222); box-shadow: inset 0 .35cqi 0 rgba(232, 200, 137, .5), 0 3cqi 6cqi rgba(0, 0, 0, .7); }
 
 /* 大廳地板：售票亭站在上面；手機往下捲時跟著內容走 */
-.lobby-floor { position: relative; z-index: 1; align-self: stretch; flex: none; margin: calc(var(--bw) * -.12) -16px 0; height: max(12svh, 84px); }
+.lobby-floor { position: relative; z-index: 1; align-self: stretch; flex: none; margin: calc(var(--bw) * -.12) -16px 0; height: max(16svh, 132px); }
+/* 點我購票：售票亭正下方，金色、慢慢發光 */
+.buy { position: absolute; left: 50%; top: calc(var(--bw) * .12 + 14px); transform: translateX(-50%); z-index: 2; min-height: 44px; padding: 8px 32px; white-space: nowrap;
+  animation: buy-glow 2.6s ease-in-out infinite; }
+@keyframes buy-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(212, 166, 74, 0), 0 8px 24px -10px rgba(212, 166, 74, .7); } 50% { box-shadow: 0 0 0 7px rgba(212, 166, 74, .14), 0 8px 28px -8px rgba(212, 166, 74, .9); } }
+@media (hover: hover) { .buy:hover { transform: translateX(-50%) translateY(-2px); } }
 .lobby-floor .floor-tiles { opacity: .9; }
-.skip { position: fixed; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); }
+.skip { position: absolute; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); }
 .site-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; white-space: nowrap;
   display: flex; align-items: center; justify-content: center; gap: 6px 18px; padding: 0 16px env(safe-area-inset-bottom, 0px);
   font-size: .76rem; letter-spacing: .14em; color: var(--muted); }
@@ -343,8 +344,10 @@ body.at-booth .booth-frame { animation: glass-breathe 3.2s ease-in-out infinite;
   .hwin.l { left: 1%; } .hwin.r { left: 99%; }
   .lamp-glow { width: 260px; height: 260px; }
   .placard { grid-template-columns: 1fr; }
-  .lobby-floor { height: max(15svh, 118px); }
-  .skip { position: absolute; top: 26px; right: auto; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+  .lobby-floor { height: max(17svh, 132px); }
+  /* 手機：館名往下讓一點，不跟右上角的「略過」擠在一起 */
+  .lobby { padding-top: calc(52px + env(safe-area-inset-top, 0px)); }
+  .skip { font-size: .82rem; }
   .site-foot .foot-name, .site-foot .foot-name + .dot { display: none; }
   /* iPhone Safari 的網址列、工具列是浮在畫面上的：上下多留空間，叉叉才不會被蓋住 */
   .placard-veil { padding: calc(76px + env(safe-area-inset-top, 0px)) 12px calc(96px + env(safe-area-inset-bottom, 0px)); }

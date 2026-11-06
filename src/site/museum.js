@@ -121,8 +121,8 @@ function dateStr(d) { return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad
 function fillTicket() {
   // 感性的句子是月白銀箔、幽默的是暖金燙金
   const tk = $("ticket");
-  tk.classList.toggle("tone-wry", line.tone === "wry"); tk.classList.toggle("tone-tender", line.tone !== "wry");
-  $("tk-kicker").textContent = line.tone === "wry" ? "今晚的一句・館方碎念" : "今晚的一句";
+  tk.classList.toggle("tone-warm", line.tone === "warm"); tk.classList.toggle("tone-tender", line.tone !== "warm");
+  $("tk-kicker").textContent = "今晚的一句";
   $("tk-quote").innerHTML = quoteLines(line.zh).map(esc).join("<br>");
   $("tk-quote-en").textContent = line.en || "";
   $("tk-quote-en").hidden = !line.en;
@@ -170,21 +170,21 @@ function wrap(x, text, maxW, byWord) {
 }
 async function ticketImage() {
   // 整張就是票：1080×1920 滿版深墨藍厚卡，沒有透明邊、沒有破洞，存進相簿就是一張完整的圖（比照心的畫廊的書籤）
-  const W = 1080, H = 1920, wry = line.tone === "wry";
+  const W = 1080, H = 1920, gold = line.tone === "warm";   // warm＝暖金燙金、tender＝月白銀箔
   const SERIF = '"Noto Serif TC", "Songti TC", serif', LATIN = '"Cormorant Garamond", "Times New Roman", serif', SANS = '"Noto Sans TC", sans-serif';
   if (document.fonts) await Promise.all([
     document.fonts.load(`700 56px ${SERIF}`, "微光博物館夜間入館券引路人教育園區"), document.fonts.load(`500 72px ${SERIF}`, line.zh), document.fonts.load(`700 52px ${SERIF}`, "0123456789."),
     document.fonts.load(`600 34px ${LATIN}`, "MUSEUM OF GLIMMERS"), document.fonts.load(`italic 500 46px ${LATIN}`, (line.en || "") + "Night Admission"),
-    document.fonts.load(`400 30px ${SANS}`, "今晚的一句・館方碎念")
+    document.fonts.load(`400 30px ${SANS}`, "今晚的一句")
   ]).catch(() => {});
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const x = c.getContext("2d");
   const ls = v => { if ("letterSpacing" in x) x.letterSpacing = v; };
   // 燙金或月白銀箔，看句子的調性
   const foil = (x0, x1) => { const g = x.createLinearGradient(x0, 0, x1, 0);
-    (wry ? [[0, "#9c742c"], [.2, "#f3dc9c"], [.38, "#c9993f"], [.55, "#f8e7b2"], [.74, "#a87c30"], [1, "#e9c97f"]]
+    (gold ? [[0, "#9c742c"], [.2, "#f3dc9c"], [.38, "#c9993f"], [.55, "#f8e7b2"], [.74, "#a87c30"], [1, "#e9c97f"]]
       : [[0, "#7f8da6"], [.2, "#eef3fa"], [.38, "#a9b6cc"], [.55, "#f6f9fd"], [.74, "#8996ad"], [1, "#d7e0ec"]]).forEach(([o, col]) => g.addColorStop(o, col)); return g; };
-  const AC = wry ? "232,200,137" : "207,217,232";
+  const AC = gold ? "232,200,137" : "207,217,232";
   const cx = W / 2;
   // 卡紙：深墨藍漸層＋左上一點光＋很淡的紙纖維
   let g = x.createLinearGradient(0, 0, W * .5, H); g.addColorStop(0, "#15233f"); g.addColorStop(.55, "#0e1830"); g.addColorStop(1, "#0a1226");
@@ -213,13 +213,14 @@ async function ticketImage() {
   const rule = y0 => { const g2 = x.createLinearGradient(cx - 150, 0, cx + 150, 0); g2.addColorStop(0, `rgba(${AC},0)`); g2.addColorStop(.5, `rgba(${AC},.95)`); g2.addColorStop(1, `rgba(${AC},0)`);
     x.fillStyle = g2; x.fillRect(cx - 150, y0, 300, 2); x.save(); x.translate(cx, y0 + 1); x.rotate(Math.PI / 4); x.fillStyle = `rgb(${AC})`; x.fillRect(-8, -8, 16, 16); x.restore(); };
   rule(545);
-  x.fillStyle = `rgba(${AC},.85)`; x.font = `400 30px ${SANS}`; ls("14px"); x.fillText(wry ? "今晚的一句・館方碎念" : "今晚的一句", cx + 7, 640);
+  x.fillStyle = `rgba(${AC},.85)`; x.font = `400 30px ${SANS}`; ls("14px"); x.fillText("今晚的一句", cx + 7, 640);
   // 那句話：大字置中；中文照標點換行（太長再折），英文照單字折
   // 字級自動縮放：每一段（逗號斷開）盡量一行放得下，不把「一整天」這種詞拆開；太長才折行
-  const maxW = W - 200, fit = l => x.measureText(l).width <= maxW;
+  // 一行超過約九個字就在逗號斷開，留白比較舒服；字級再縮到每一行都放得下
+  const maxW = W - 200, fit = l => x.measureText(l).width <= maxW, pack = l => x.measureText(l).width <= 640;
   let fs = 72, segs;
-  for (; fs >= 50; fs -= 2) { x.font = `500 ${fs}px ${SERIF}`; ls("6px"); segs = quoteLines(line.zh, fit); if (segs.length <= 3 && segs.every(fit)) break; }
-  fs = Math.max(fs, 50); x.font = `500 ${fs}px ${SERIF}`; ls("6px"); segs = quoteLines(line.zh, fit);
+  for (; fs >= 50; fs -= 2) { x.font = `500 ${fs}px ${SERIF}`; ls("6px"); segs = quoteLines(line.zh, pack); if (segs.length <= 3 && segs.every(fit)) break; }
+  fs = Math.max(fs, 50); x.font = `500 ${fs}px ${SERIF}`; ls("6px"); segs = quoteLines(line.zh, pack);
   const zl = segs.flatMap(l => fit(l) ? [l] : wrap(x, l, maxW));
   const lh = Math.round(fs * 1.72);
   x.font = `italic 500 46px ${LATIN}`; ls("0px");
@@ -259,8 +260,7 @@ async function enter() {
   const t = $("ticket-scene");
   if (!REDUCED) { t.classList.add("leaving"); await wait(420); }
   t.hidden = true; t.classList.remove("leaving");
-  setLamps(false);
-  openInside("night");
+  openInside("day");   // 預設是白天開館（使用者決定）；想看展品活過來，切到夜遊
   busy = false;
 }
 
@@ -401,11 +401,13 @@ function footHTML() {
 $("site-foot").innerHTML = footHTML();
 buildHall();
 $("booth").addEventListener("click", issue);
+$("buy").addEventListener("click", issue);
 $("tk-go").addEventListener("click", enter);
 $("tk-save").addEventListener("click", saveTicket);
 $("tk-again").addEventListener("click", again);
 $("hud-back").addEventListener("click", resetToBooth);
-$("mode-switch").addEventListener("click", ev => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
+// 用滑鼠或手指點的，點完放掉焦點：不然按空白鍵會再按一次切換鈕，而不是看說明牌
+$("mode-switch").addEventListener("click", ev => { const b = ev.target.closest("button[data-mode]"); if (!b) return; if (ev.detail) b.blur(); setMode(b.dataset.mode); });
 $("skip").addEventListener("click", () => { $("booth-scene").hidden = true; setLamps(true); openInside("catalog"); });
 $("pl-close").addEventListener("click", closePlacard);
 $("pl-done").addEventListener("click", closePlacard);
