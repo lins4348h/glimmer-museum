@@ -111,8 +111,8 @@ export function createMap(root, opt) {
       const ink = moon ? "#1b2d4f" : gold;
       g.strokeStyle = ink; g.lineWidth = 6; g.strokeRect(14, 14, w - 28, h - 28); g.lineWidth = 2; g.strokeRect(28, 28, w - 56, h - 56);
       g.fillStyle = ink; g.textAlign = "center"; g.textBaseline = "middle";
-      g.font = `700 ${small ? 92 : 104}px "Noto Serif TC", serif`; g.fillText(big, w / 2, small ? h * .42 : h / 2 + 4);
-      if (small) { g.font = `italic 500 52px "Cormorant Garamond", serif`; g.fillText(small, w / 2, h * .76); }
+      g.font = `900 ${small ? 112 : 116}px "Noto Serif TC", serif`; g.fillText(big, w / 2, small ? h * .43 : h / 2 + 4);
+      if (small) { g.font = `italic 600 50px "Cormorant Garamond", serif`; g.fillText(small, w / 2, h * .79); }
     }, [1, 1]);
   }
 
@@ -130,7 +130,7 @@ export function createMap(root, opt) {
   }
   function sph(r, mat, x, y, z, parent = scene) { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 12), mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m; }
   const solidCircle = (x, z, r) => circles.push([x, z, r]);
-  function blocked(x, z, r = .26) {
+  function blocked(x, z, r = .22) {
     for (const [a, b, c, d] of solids) if (x + r > a && x - r < c && z + r > b && z - r < d) return true;
     for (const [cx, cz, cr] of circles) if (Math.hypot(x - cx, z - cz) < cr + r) return true;
     return !inside(x, z, r);
@@ -183,7 +183,7 @@ export function createMap(root, opt) {
   // 大廳北牆：人走進北邊的廳時要降下來（不然擋住人），所以放在一個群組裡
   const northWall = new THREE.Group(); scene.add(northWall);
   const hasN = !!roomAt("north"), hasW = !!roomAt("west"), hasE = !!roomAt("east"), hasS = !!roomAt("south");
-  if (hasN) { wall(-7.4, -6.4, -1.6, -6, { parent: northWall }); wall(1.6, -6.4, 7.4, -6, { parent: northWall }); box(3.2, .6, .4, M.wallW, 0, H - .6, -6.2, { parent: northWall }); }
+  if (hasN) { wall(-7.4, -6.4, -1.6, -6, { parent: northWall }); wall(1.6, -6.4, 7.4, -6, { parent: northWall }); box(3.2, 1, .4, M.wallW, 0, H - 1, -6.2, { parent: northWall }); }
   else wall(-7.4, -6.4, 7.4, -6, { parent: northWall });
   const northLow = new THREE.Group(); scene.add(northLow); northLow.visible = false;   // 降下來時看到的矮牆
   wall(-7.4, -6.4, hasN ? -1.6 : 7.4, -6, { h: LOW, parent: northLow, solid: false }); if (hasN) wall(1.6, -6.4, 7.4, -6, { h: LOW, parent: northLow, solid: false });
@@ -218,21 +218,22 @@ export function createMap(root, opt) {
   function portal(r) {
     const label = `${r.f.numeral || ""}　${r.f.label}`, en = r.f.en || "";
     if (r.pos === "north") {
-      for (const s of [-1, 1]) { box(.12, H - .62, .12, M.gold, s * 1.66, 0, -5.98, { parent: northWall }); }
-      box(3.5, .1, .14, M.gold, 0, H - .7, -5.98, { parent: northWall });
-      plaque(plaqueTex(label, en), 2.2, .55, 0, H - .32, -5.94, 0, northWall);
+      // 門楣加高，掛一塊大的燙金廳名牌（使用者嫌過太小看不到）
+      for (const s of [-1, 1]) { box(.12, H - 1.02, .12, M.gold, s * 1.66, 0, -5.98, { parent: northWall }); }
+      box(3.5, .1, .14, M.gold, 0, H - 1.06, -5.98, { parent: northWall });
+      plaque(plaqueTex(label, en), 3, .76, 0, H - .5, -5.94, 0, northWall);
     } else if (r.pos === "south") {
       // 南門那面牆切低了：門兩邊兩根矮金柱，牌子斜放在矮牆上朝鏡頭（不做高拱門，才不會擋住大廳裡的人）
       for (const s of [-1, 1]) { cyl(.06, .08, .9, M.gold, s * 1.72, 0, 6.2, 16); sph(.08, M.gold, s * 1.72, .95, 6.2); }
-      const g = plaque(plaqueTex(label, en), 1.7, .42, 3.6, .78, 6.05); g.rotation.x = -.55;
+      const g = plaque(plaqueTex(label, en), 2.6, .66, 4.1, .82, 6.05); g.rotation.x = -.6;
     } else {
       // 側門：燙金門框＋一塊從牆上伸出來的掛牌（牌面朝鏡頭，一眼讀得到）
       const s = r.pos === "west" ? -1 : 1, x = s * 7;
       for (const z of [-1.36, 1.36]) box(.12, H - .4, .12, M.gold, x - s * .04, 0, z);
       box(.12, .1, 2.84, M.gold, x - s * .04, H - .5, 0);
-      const arm = box(.9, .05, .05, M.gold, x - s * .45, H - .2, 1.6, { shadow: false });
-      const g = plaque(plaqueTex(label, en), 1.5, .38, x - s * .78, H - .5, 1.6);
-      for (const dx of [-.5, .5]) box(.012, .14, .012, M.gold, x - s * .78 + dx, H - .32, 1.6, { shadow: false });
+      box(2.7, .05, .05, M.gold, x - s * 1.35, H - .12, 1.7, { shadow: false });
+      plaque(plaqueTex(label, en), 2.4, .62, x - s * 1.45, H - .55, 1.7);
+      for (const dx of [-1, 1]) box(.012, .1, .012, M.gold, x - s * 1.45 + dx, H - .2, 1.7, { shadow: false });
     }
   }
   rooms.forEach(portal);
@@ -666,7 +667,7 @@ export function createMap(root, opt) {
     for (const v of vitrines) v.beam.material.opacity = n ? .12 : .035;
     for (const p of pools) p.m.material.opacity = n ? p.op : 0;
     for (const w of windows) w.color.set(n ? 0x6a84bc : 0xf4f8ff);
-    for (const m of glowMats) m.emissiveIntensity = n ? .55 : .05;
+    for (const m of glowMats) m.emissiveIntensity = n ? .7 : .22;
     M.exGold.emissiveIntensity = n ? .35 : 0; M.exIvory.emissiveIntensity = n ? .25 : 0;
     ground.material.color.set(n ? 0x0b0f18 : 0xd6d1c7);
     scene.background = new THREE.Color(n ? 0x05070d : 0xd6d1c7);
@@ -878,13 +879,25 @@ export function createMap(root, opt) {
   function snapCamera() { const far = W / Hh < 1 ? 1.35 : 1; camPos.set(player.position.x, .4 + 14 * far, Math.max(player.position.z - 1.8, -9.2) + 11.5 * far); }
   function loop() { cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(frame); }
 
+  let warmed = false;
+  function warmUp() {
+    if (warmed) return; warmed = true;
+    const texs = new Set();
+    scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) for (const k of ["map", "emissiveMap"]) if (m[k]) texs.add(m[k]); });
+    for (const t of texs) renderer.initTexture(t);
+    // 藏起來的東西（夜裡的遊客、降下來的矮牆）也先準備好，切換時才不會停一下
+    const hidden = []; scene.traverse(o => { if (!o.visible) { hidden.push(o); o.visible = true; } });
+    renderer.compile(scene, camera);
+    for (const o of hidden) o.visible = false;
+  }
+
   return {
     // night：true＝夜晚、false＝白天開館
     start(isNight) {
       night = isNight; running = true; startedOnce = true; guardSaid = false; resize();
       player.position.set(0, 0, 4.6); player.rotation.y = Math.PI;
       for (const it of items) homeItem(it);
-      applyNight(); assignSpots(); snapCamera();
+      applyNight(); assignSpots(); snapCamera(); camera.position.copy(camPos); camera.lookAt(player.position); warmUp();
       curRoom = "hall"; showBanner(null); loop();
       if (!helpShown) showHelp();
     },
