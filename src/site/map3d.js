@@ -133,7 +133,8 @@ export function createMap(root, opt) {
   function blocked(x, z, r = .22) {
     for (const [a, b, c, d] of solids) if (x + r > a && x - r < c && z + r > b && z - r < d) return true;
     for (const [cx, cz, cr] of circles) if (Math.hypot(x - cx, z - cz) < cr + r) return true;
-    if (DW.off && Math.hypot(x - DW.cx, z - DW.cz) < 1.1 + r) return true;   // 下台散步的恐龍
+    // 下台散步的恐龍：只擋「越走越靠近」，往外走永遠可以（使用者遇過靠近恐龍就卡住動不了）
+    if (DW.off) { const d = Math.hypot(x - DW.cx, z - DW.cz); if (d < 1.1 + r && d < DW.pd - .001) return true; }
     return !inside(x, z, r);
   }
 
@@ -443,7 +444,7 @@ export function createMap(root, opt) {
   }
   dino.rotation.y = .55;
   const DINO_BASE = .55;
-  const DW = { state: "home", wait: 6, th: 0, th0: 0, walk: 0, off: false, cx: 0, cz: 0 };
+  const DW = { state: "home", wait: 6, th: 0, th0: 0, walk: 0, off: false, cx: 0, cz: 0, pd: 99 };
 
   /* ---------- 展品：每廳沿著後牆一排展櫃；夜裡會跑出來 ---------- */
   function goldObject(key) {
@@ -863,6 +864,12 @@ export function createMap(root, opt) {
     const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; const t = now / 1000;
     const iv = opt.blocked() ? { x: 0, y: 0 } : inputVec();
     const moving = Math.hypot(iv.x, iv.y) > .05;
+    // 恐龍轉身時碰撞範圍可能蓋到人：先把人輕輕推到外面，再記下現在離恐龍多遠
+    if (DW.off) {
+      const P = player.position, dx = P.x - DW.cx, dz = P.z - DW.cz, d = Math.hypot(dx, dz) || .001, need = 1.1 + .22;
+      if (d < need) { const k = Math.min(need - d, dt * 3) / d, nx = P.x + dx * k, nz = P.z + dz * k; DW.pd = 99; if (!blocked(nx, nz)) { P.x = nx; P.z = nz; } }
+      DW.pd = Math.hypot(P.x - DW.cx, P.z - DW.cz);
+    } else DW.pd = 99;
     if (moving) {
       const nx = player.position.x + iv.x * SPEED * dt, nz = player.position.z + iv.y * SPEED * dt;
       if (!blocked(nx, player.position.z)) player.position.x = nx;
